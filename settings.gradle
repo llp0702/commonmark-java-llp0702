@@ -1,2 +1,4 @@
 rootProject.name = 'uparis-commonmark-java'
+include 'md2html'
+include 'buildsite'
 
