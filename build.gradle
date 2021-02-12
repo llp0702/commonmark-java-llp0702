@@ -7,8 +7,27 @@ subprojects {
         mavenCentral()
     }
     apply plugin: "java"
+    apply plugin: "jacoco"
     dependencies {
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        testImplementation(platform('org.junit:junit-bom:5.7.0'))
+        testImplementation 'org.junit.jupiter:junit-jupiter'
         implementation 'org.commonmark:commonmark:0.17.1'
     }
+    tasks.named('test') {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+    jacocoTestReport {
+        dependsOn test
+        sourceDirectories.from files(sourceSets.main.allJava.srcDirs)
+    }
+}
+
+
+task myZip(type: Zip) {
+    from './'
+    include '*'
+    include '*/*' //to include contents of a folder present inside Reports directory
+    archiveName 'output.zip'
+    destinationDir(file('output/'))
 }
