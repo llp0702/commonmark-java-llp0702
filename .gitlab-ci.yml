@@ -5,6 +5,10 @@ image: gradle:latest
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
+cache:
+  paths:
+    - .m2/repository
+
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
