@@ -1,5 +1,10 @@
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class ParserForSiteTest extends TestCase {
+public class ParserForSiteTest {
+    @Test
+    public void testTest(){
+        Assertions.assertEquals(1,1);
+    }
 
 }
