@@ -11,6 +11,7 @@ subprojects {
     apply plugin: "jacoco"
     apply plugin: "idea"
     dependencies {
+        implementation 'nu.validator:validator:20.7.2'
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
         testImplementation 'org.junit.jupiter:junit-jupiter'
         implementation 'org.commonmark:commonmark:0.17.1'
@@ -33,3 +34,4 @@ task myZip(type: Zip) {
     archiveName 'output.zip'
     destinationDir(file('output/'))
 }
+

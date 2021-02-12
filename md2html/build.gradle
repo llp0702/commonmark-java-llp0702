@@ -1,2 +1,12 @@
+plugins {
+    id "application"
+}
 group 'uparis'
 version '1.0-SNAPSHOT'
+ext {
+    javaMainClass = "SimpleParser"
+}
+
+application {
+    mainClassName = javaMainClass
+}
