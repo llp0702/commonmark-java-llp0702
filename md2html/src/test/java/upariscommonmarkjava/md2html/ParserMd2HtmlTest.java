@@ -20,7 +20,6 @@ public class ParserMd2HtmlTest {
         if(is==null) fail("cmexample1.md not found");
         CMFile cmFile = CMFile.fromString(new String(is.readAllBytes()));
         ParserMd2Html parser = ParserMd2Html.builder().build();
-
         String result = parser.parseAndRenderToString(cmFile);
         ValidationResponse response =
                 new ValidatorBuilder().html().validate(result);

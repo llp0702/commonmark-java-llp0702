@@ -1,6 +1,10 @@
 package upariscommonmarkjava.md2html.implementations;
 
 import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
 import java.io.IOException;
@@ -10,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Builder
+@Slf4j
 public class CMFile implements ICMFile {
 
     public static CMFile fromString(final String cmString) throws IOException{
