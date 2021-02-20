@@ -20,20 +20,22 @@ subprojects {
 
         implementation 'commons-cli:commons-cli:1.4'
 
-        compileOnly 'org.projectlombok:lombok:1.18.18'
+        implementation 'org.projectlombok:lombok:1.18.18'
         annotationProcessor 'org.projectlombok:lombok:1.18.18'
-        testCompileOnly 'org.projectlombok:lombok:1.18.18'
+        testImplementation 'org.projectlombok:lombok:1.18.18'
         testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
-        implementation 'org.slf4j:slf4j-simple:1.7.30'
 
         implementation 'nu.validator:validator:20.6.30'
         testImplementation  'nu.validator:validator:20.6.30'
     }
     tasks.named('test') {
         useJUnitPlatform()
+
+        //This avoids StackOverflowException during Jacoco report
         jacoco {
             excludes=['com.thaiopensource.relaxng.impl.*']
         }
+
         finalizedBy jacocoTestReport
     }
     jacocoTestReport {

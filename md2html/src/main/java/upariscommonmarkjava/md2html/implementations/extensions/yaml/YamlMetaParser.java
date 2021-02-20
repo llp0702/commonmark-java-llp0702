@@ -1,4 +1,4 @@
-package upariscommonmarkjava.md2html.implementations.extensions;
+package upariscommonmarkjava.md2html.implementations.extensions.yaml;
 
 import org.commonmark.ext.front.matter.YamlFrontMatterBlock;
 import org.commonmark.ext.front.matter.YamlFrontMatterNode;

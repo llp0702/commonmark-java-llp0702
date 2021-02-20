@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public interface IParserMd2Html {
-    Node parse(ICMFile cmFile) throws IOException;
-    String parseAndRenderToString(ICMFile cmFile)throws IOException;
-    public void parse(ICMFile cmFile, Path destination)throws IOException;
+    Node parseAndConvert2HtmlAndSave(ICMFile cmFile) throws IOException;
+    String parseAndConvert2Html(ICMFile cmFile)throws IOException;
+    public void parseAndConvert2HtmlAndSave(ICMFile cmFile, Path destination)throws IOException;
 }

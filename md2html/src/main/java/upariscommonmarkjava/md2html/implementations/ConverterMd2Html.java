@@ -5,7 +5,7 @@ import org.commonmark.ext.front.matter.YamlFrontMatterVisitor;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import upariscommonmarkjava.md2html.implementations.extensions.YamlMeta;
+import upariscommonmarkjava.md2html.implementations.extensions.yaml.YamlMeta;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IParserMd2Html;
 
@@ -26,28 +26,30 @@ public class ConverterMd2Html implements IParserMd2Html {
 
     final private Parser parser;
     final private HtmlRenderer htmlRenderer;
-    public Node parse(ICMFile cmFile)throws IOException {
+    public Node parseAndConvert2HtmlAndSave(ICMFile cmFile)throws IOException {
         return parser.parseReader(cmFile.getReader());
     }
 
     @Override
-    public String parseAndRenderToString(ICMFile cmFile) throws IOException {
-        Node document = parse(cmFile);
+    public String parseAndConvert2Html(ICMFile cmFile) throws IOException {
+        Node document = parseAndConvert2HtmlAndSave(cmFile);
         String res = htmlRenderer.render(document);
         YamlFrontMatterVisitor t = new YamlFrontMatterVisitor();
         document.accept(t);
         cmFile.setMetadata(t.getData());
-        return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>"+res+"</body></html>";
+        return wrapHtmlBody(res);
     }
 
     @Override
-    public void parse(ICMFile cmFile, Path destination) throws IOException {
-        Node res = parse(cmFile);
+    public void parseAndConvert2HtmlAndSave(ICMFile cmFile, Path destination) throws IOException {
+        Node res = parseAndConvert2HtmlAndSave(cmFile);
         HtmlRenderer renderer = HtmlRenderer.builder().build();
-        String resString = renderer.render(res);
+        String resString = wrapHtmlBody(renderer.render(res));
         Files.deleteIfExists(destination);Files.createFile(destination);
         Files.writeString(destination, resString, StandardOpenOption.APPEND);
-
     }
 
+    private String wrapHtmlBody(String body){
+        return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>"+body+"</body></html>";
+    }
 }

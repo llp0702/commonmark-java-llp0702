@@ -1,4 +1,4 @@
-package upariscommonmarkjava.md2html.implementations.extensions;
+package upariscommonmarkjava.md2html.implementations.extensions.yaml;
 
 import lombok.NoArgsConstructor;
 import org.commonmark.Extension;

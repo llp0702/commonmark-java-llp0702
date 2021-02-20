@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 @Builder
-@Data
 public class CMFile implements ICMFile {
 
     public static CMFile fromString(final String cmString) throws IOException{
@@ -31,6 +30,11 @@ public class CMFile implements ICMFile {
     @Override
     public Reader getReader(){
         return reader;
+    }
+
+    @Override
+    public void setMetadata(Map<String, List<String>> metadata) {
+        this.metadata = metadata;
     }
 
 }
