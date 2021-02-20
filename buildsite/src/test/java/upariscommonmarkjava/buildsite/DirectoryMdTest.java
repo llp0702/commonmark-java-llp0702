@@ -10,17 +10,17 @@ class DirectoryMdTest {
 
     //verifie la validité du test de répertoire
     @Test
-    public void testValid() throws IOException
+    public void testValid()
     {
         final DirectoryMd correct_site = DirectoryMd.open("");
         assertTrue(correct_site.valid());
 
         final DirectoryMd incorrect_site = DirectoryMd.open("");
-        assertFalse(correct_site.valid());
+        assertFalse(incorrect_site.valid());
     }
 
     @Test
-    public void testIndexPresent() throws IOException
+    public void testIndexPresent()
     {
         final DirectoryMd correct_index = DirectoryMd.open("");
         assertTrue(correct_index.valid());
@@ -29,7 +29,7 @@ class DirectoryMdTest {
     }
 
     @Test
-    public void testTomlPresent() throws IOException
+    public void testTomlPresent()
     {
         final DirectoryMd correct_toml = DirectoryMd.open("");
         assertTrue(correct_toml.valid());
@@ -39,7 +39,7 @@ class DirectoryMdTest {
     }
 
     @Test
-    public void testContentPresent() throws IOException
+    public void testContentPresent()
     {
         final DirectoryMd correct_content = DirectoryMd.open("");
         assertTrue(correct_content.valid());
@@ -50,7 +50,7 @@ class DirectoryMdTest {
 
     //vérifie le correcte chargement des fichiers md
     @Test
-    public void testOpen() throws IOException
+    public void testOpen()
     {
         //Test1
         final DirectoryMd correct_site = DirectoryMd.open("");
@@ -72,7 +72,7 @@ class DirectoryMdTest {
 
     //Vérifie la bonne génération du site
     @Test
-    public void testGenerateHtml() throws IOException
+    public void testGenerateHtml()
     {
         final DirectoryMd correct_site = DirectoryMd.open("");
         final DirectoryHtml correct_html = correct_site.generateHtml();
