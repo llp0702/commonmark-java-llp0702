@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DirectoryHtmlTest {
     DirectoryMd correct_site;
@@ -15,7 +16,14 @@ public class DirectoryHtmlTest {
     @BeforeEach
     public void initCorrectSite()
     {
-        correct_site = DirectoryMd.open("");
+        try
+        {
+            correct_site = DirectoryMd.open("");
+        }
+        catch(SiteFormatException e)
+        {
+            fail("Cannot open DirectoryMd");
+        }
         correct_html = correct_site.generateHtml();
     }
 
