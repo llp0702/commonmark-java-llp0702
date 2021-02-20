@@ -1,5 +1,6 @@
 package upariscommonmarkjava.buildsite;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -8,44 +9,78 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DirectoryMdTest {
 
+    DirectoryMd correct_site;
+    DirectoryMd incorrect_site;
+
+    @BeforeEach
+    public void init()
+    {
+        try
+        {
+            DirectoryMd correct_site = DirectoryMd.open("");
+            DirectoryMd incorrect_site = DirectoryMd.open("");
+        }
+        catch(SiteFormatException e)
+        {
+            fail("Cannot open DirectoryMd");
+        }
+    }
+
     //verifie la validité du test de répertoire
     @Test
     public void testValid()
     {
-        final DirectoryMd correct_site = DirectoryMd.open("");
         assertTrue(correct_site.valid());
-
-        final DirectoryMd incorrect_site = DirectoryMd.open("");
         assertFalse(incorrect_site.valid());
     }
 
     @Test
     public void testIndexPresent()
     {
-        final DirectoryMd correct_index = DirectoryMd.open("");
-        assertTrue(correct_index.valid());
-        assertThrows(SiteFormatException.class,() ->
+        try
+        {
+            final DirectoryMd correct_index = DirectoryMd.open("");
+            assertTrue(correct_index.valid());
+            assertThrows(SiteFormatException.class,() ->
             { final DirectoryMd incorrect_index = DirectoryMd.open("");});
+        }
+        catch(SiteFormatException e)
+        {
+            fail("Cannot open DirectoryMd");
+        }
     }
 
     @Test
     public void testTomlPresent()
     {
-        final DirectoryMd correct_toml = DirectoryMd.open("");
-        assertTrue(correct_toml.valid());
+        try
+        {
+            final DirectoryMd correct_toml = DirectoryMd.open("");
+            assertTrue(correct_toml.valid());
 
-        assertThrows(SiteFormatException.class,() ->
-        { final DirectoryMd incorrect_toml = DirectoryMd.open("");});
+            assertThrows(SiteFormatException.class,() ->
+            { final DirectoryMd incorrect_toml = DirectoryMd.open("");});
+        }
+        catch(SiteFormatException e)
+        {
+            fail("Cannot open DirectoryMd");
+        }
     }
 
     @Test
     public void testContentPresent()
     {
-        final DirectoryMd correct_content = DirectoryMd.open("");
-        assertTrue(correct_content.valid());
+        try {
+            final DirectoryMd correct_content = DirectoryMd.open("");
+            assertTrue(correct_content.valid());
 
-        assertThrows(SiteFormatException.class,() ->
-        { final DirectoryMd incorrect_content = DirectoryMd.open("");});
+            assertThrows(SiteFormatException.class,() ->
+            { final DirectoryMd incorrect_content = DirectoryMd.open("");});
+        }
+        catch(SiteFormatException e)
+        {
+            fail("Cannot open DirectoryMd");
+        }
     }
 
     //vérifie le correcte chargement des fichiers md
@@ -53,7 +88,6 @@ class DirectoryMdTest {
     public void testOpen()
     {
         //Test1
-        final DirectoryMd correct_site = DirectoryMd.open("");
         assertTrue(correct_site.valid());
 
         //Test2
@@ -74,13 +108,8 @@ class DirectoryMdTest {
     @Test
     public void testGenerateHtml()
     {
-        final DirectoryMd correct_site = DirectoryMd.open("");
         final DirectoryHtml correct_html = correct_site.generateHtml();
-
         assertTrue(correct_html.isSimilare(correct_site));
-
-        final DirectoryMd incorrect_site = DirectoryMd.open("");
-
         assertFalse(correct_html.isSimilare(incorrect_site));
     }
 }
