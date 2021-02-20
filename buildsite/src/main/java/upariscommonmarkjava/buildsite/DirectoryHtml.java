@@ -2,10 +2,11 @@ package upariscommonmarkjava.buildsite;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DirectoryHtml {
 
-    public static DirectoryHtml create(ArrayList<String> htmlFiles)
+    public static DirectoryHtml create(ArrayList<String> htmlFiles, HashMap<String, String> options)
     {
         return null;
     }
