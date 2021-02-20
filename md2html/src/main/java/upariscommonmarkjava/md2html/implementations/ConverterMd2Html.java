@@ -7,7 +7,7 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import upariscommonmarkjava.md2html.implementations.extensions.yaml.YamlMeta;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
-import upariscommonmarkjava.md2html.interfaces.IParserMd2Html;
+import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class ConverterMd2Html implements IParserMd2Html {
+public class ConverterMd2Html implements IConverterMd2Html {
     public ConverterMd2Html(){
         final List<Extension> extensions = Collections.singletonList(YamlMeta.create());
         parser = Parser.builder().extensions(extensions).build();

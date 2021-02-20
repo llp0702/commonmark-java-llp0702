@@ -16,7 +16,7 @@ subprojects {
 
         implementation 'org.commonmark:commonmark:0.17.1'
         implementation 'org.commonmark:commonmark-ext-gfm-tables:0.17.1'
-        compile 'org.commonmark:commonmark-ext-yaml-front-matter:0.17.1'
+        implementation 'org.commonmark:commonmark-ext-yaml-front-matter:0.17.1'
 
         implementation 'commons-cli:commons-cli:1.4'
 

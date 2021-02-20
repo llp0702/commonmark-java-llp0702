@@ -6,7 +6,7 @@ import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public interface IParserMd2Html {
+public interface IConverterMd2Html {
     Node parseAndConvert2HtmlAndSave(ICMFile cmFile) throws IOException;
     String parseAndConvert2Html(ICMFile cmFile)throws IOException;
     public void parseAndConvert2HtmlAndSave(ICMFile cmFile, Path destination)throws IOException;
