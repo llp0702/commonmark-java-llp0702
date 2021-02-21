@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.system.module.type="sourceSet" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <output-test url="file://$MODULE_DIR$/../../build/classes/java/test" />
+    <output url="file://$MODULE_DIR$/../../../buildsite/build/classes/java/main" />
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../src/test">
-      <sourceFolder url="file://$MODULE_DIR$/../../src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../../src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../../src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/../../src/test/resources" type="java-test-resource" />
+    <content url="file://$MODULE_DIR$/../../../buildsite/build/generated/sources/annotationProcessor/java/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../buildsite/build/generated/sources/annotationProcessor/java/main" isTestSource="false" generated="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../buildsite/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../buildsite/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../buildsite/src/main/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="uparis-commonmark-java.main" />
-    <orderEntry type="library" name="Gradle: nu.validator:validator:20.7.2" level="project" />
+    <orderEntry type="library" name="Gradle: org.commonmark:commonmark-ext-gfm-tables:0.17.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.commonmark:commonmark-ext-yaml-front-matter:0.17.1" level="project" />
     <orderEntry type="library" name="Gradle: org.commonmark:commonmark:0.17.1" level="project" />
-    <orderEntry type="library" name="Gradle: org.projectlombok:lombok:1.18.18" level="project" />
     <orderEntry type="library" name="Gradle: commons-cli:commons-cli:1.4" level="project" />
-    <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter:5.7.0" level="project" />
+    <orderEntry type="library" name="Gradle: org.projectlombok:lombok:1.18.18" level="project" />
+    <orderEntry type="library" name="Gradle: nu.validator:validator:20.6.30" level="project" />
+    <orderEntry type="module" module-name="uparis-commonmark-java.md2html.main" />
     <orderEntry type="library" name="Gradle: com.ibm.icu:icu4j:58.2" level="project" />
     <orderEntry type="library" name="Gradle: com.shapesecurity:salvation:2.7.2" level="project" />
     <orderEntry type="library" name="Gradle: org.apache.httpcomponents:httpclient:4.4" level="project" />
@@ -24,7 +26,7 @@
     <orderEntry type="library" name="Gradle: commons-fileupload:commons-fileupload:1.3.1" level="project" />
     <orderEntry type="library" name="Gradle: commons-io:commons-io:2.4" level="project" />
     <orderEntry type="library" name="Gradle: commons-logging:commons-logging:1.2" level="project" />
-    <orderEntry type="library" name="Gradle: nu.validator:jing:20200702VNU" level="project" />
+    <orderEntry type="library" name="Gradle: nu.validator:jing:20190429VNU" level="project" />
     <orderEntry type="library" name="Gradle: isorelax:isorelax:20030108" level="project" />
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-security:9.4.18.v20190429" level="project" />
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-server:9.4.18.v20190429" level="project" />
@@ -41,14 +43,6 @@
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-io:9.4.18.v20190429" level="project" />
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-util-ajax:9.4.18.v20190429" level="project" />
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-util:9.4.18.v20190429" level="project" />
-    <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter-params:5.7.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter-api:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: org.eclipse.jetty:jetty-continuation:9.4.18.v20190429" level="project" />
-    <orderEntry type="library" name="Gradle: org.apiguardian:apiguardian-api:1.1.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.junit.platform:junit-platform-commons:1.7.0" level="project" />
-    <orderEntry type="library" name="Gradle: org.opentest4j:opentest4j:1.2.0" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Gradle: org.junit.jupiter:junit-jupiter-engine:5.7.0" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Gradle: org.junit.platform:junit-platform-engine:1.7.0" level="project" />
   </component>
-  <component name="TestModuleProperties" production-module="uparis-commonmark-java.main" />
 </module>
