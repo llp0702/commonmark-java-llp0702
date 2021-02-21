@@ -47,6 +47,8 @@ public class Md2HtmlMain {
             // oops, something went wrong
             logger.warning( "Something went wrong :" + exp.getMessage() );
             logger.info("You should execute ssg build -h");
+            logger.warning("stack trace: ");
+            exp.printStackTrace();
         }
     }
 
@@ -61,7 +63,9 @@ public class Md2HtmlMain {
 
     public static void work(final String filePath, final String outputDir) throws IOException {
         Path inputPath = Paths.get(filePath);
-        Path outputPath = Paths.get(outputDir+inputPath.getFileName());
+        String filenameInput = inputPath.getFileName().toString();
+        String filenameOutput = filenameInput.substring(0, filenameInput.lastIndexOf('.'))+".html";
+        Path outputPath = Paths.get(outputDir+filenameOutput);
         ICMFile cmFile = CMFile.fromPath(inputPath);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html();
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);

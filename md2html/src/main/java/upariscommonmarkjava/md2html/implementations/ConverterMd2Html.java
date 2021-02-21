@@ -45,8 +45,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         Node res = parseAndConvert2HtmlAndSave(cmFile);
         HtmlRenderer renderer = HtmlRenderer.builder().build();
         String resString = wrapHtmlBody(renderer.render(res));
-        Files.deleteIfExists(destination);Files.createFile(destination);
-        Files.writeString(destination, resString, StandardOpenOption.APPEND);
+        Files.writeString(destination, resString, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
     }
 
     private String wrapHtmlBody(String body){

@@ -25,19 +25,25 @@ public class SsgMain {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse( options, args );
-            if( line.hasOption("h")){
-                help(options);
+            if(line.hasOption("h")){
+                if(line.getArgs().length>0 && commands.contains(line.getArgs()[0])){
+                    work(line.getArgs()[0], options, Arrays.copyOfRange(args, 1, args.length));
+                }else{
+                    help(options);
+                }
             }else{
                 if(line.getArgs().length==0){
                     throw new ParseException("Unspecified ssg command");
                 }
-                if(!commands.contains(line.getArgs()[0])){
-                    help(options);
-                }
                 String command=line.getArgs()[0];
-                if(command.equals("build")){
-                    Md2HtmlMain.main(Arrays.copyOfRange(args, 1, args.length));
+                String[] argsWithoutCommand = new String[args.length-1];
+                int j=0;
+                for (int i = 0; i < args.length; i++) {
+                    if(!args[i].equals(command)){
+                        argsWithoutCommand[j++]=args[i];
+                    }
                 }
+                work(command, options, argsWithoutCommand);
             }
         }
         catch(ParseException exp ) {
@@ -57,6 +63,16 @@ public class SsgMain {
         Options options = new Options();
         options.addOption(Option.builder("h").longOpt("help").desc("Affiche ce message" ).build() );
         return options;
+    }
+
+    public static void work(String command, Options options, String[] args){
+        if(!commands.contains(command)){
+            help(options);
+        }
+        if(command.equals("build")){
+            Md2HtmlMain.main(args);
+        }
+
     }
 
 }
