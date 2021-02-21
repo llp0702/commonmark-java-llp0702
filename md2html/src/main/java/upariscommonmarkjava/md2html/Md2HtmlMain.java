@@ -31,7 +31,7 @@ public class Md2HtmlMain {
                 if(line.getArgs().length==0){
                     throw new ParseException("Unspecified input file");
                 }
-                //We suppose this is absolute path
+
                 String fileInputPath = line.getArgs()[0];
 
                 String outputDir = OUTPUT_DIR;

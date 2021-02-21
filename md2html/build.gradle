@@ -1,7 +1,3 @@
-apply{
-    plugin 'application'
-}
+
 group 'uparis'
 version '1.0-SNAPSHOT'
-
-mainClassName = "upariscommonmarkjava.md2html.Md2HtmlMain"

@@ -1,8 +1,15 @@
 group 'uparis'
 version '1.0-SNAPSHOT'
+apply {
+    plugin 'application'
+}
 
+mainClassName = 'upariscommonmarkjava.SsgMain'
+dependencies {
+    implementation project(':md2html')
+}
 
-subprojects {
+allprojects {
     repositories {
         mavenCentral()
         jcenter()
