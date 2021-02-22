@@ -21,7 +21,6 @@ public class DirectoryHtml {
         return false;
     }
 
-
     //create path\_output\...
     public void save(String path)
     {

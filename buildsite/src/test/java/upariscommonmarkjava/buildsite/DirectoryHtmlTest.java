@@ -18,7 +18,7 @@ public class DirectoryHtmlTest {
     {
         try
         {
-            correct_site = DirectoryMd.open("");
+            correct_site = DirectoryMd.open("src/test/resources/minimal");
         }
         catch(SiteFormatException e)
         {

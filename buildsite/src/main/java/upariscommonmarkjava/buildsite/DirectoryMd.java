@@ -10,6 +10,7 @@ public class DirectoryMd {
     public static DirectoryMd open(String path) throws SiteFormatException
     {
         File folder = new File(path);
+        //System.out.println(folder.getAbsolutePath());
 
         if(folder.isDirectory())
         {
@@ -77,10 +78,6 @@ public class DirectoryMd {
         }
     }
 
-    public boolean valid()
-    {
-        return (options != null && paths_md != null);
-    }
 
     public DirectoryHtml generateHtml()
     {
