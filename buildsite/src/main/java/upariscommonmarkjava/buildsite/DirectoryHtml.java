@@ -1,7 +1,14 @@
 package upariscommonmarkjava.buildsite;
 
+import upariscommonmarkjava.md2html.implementations.CMFile;
+import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ICMFile;
+import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -58,7 +65,12 @@ public class DirectoryHtml {
         for(String path_md : this.files.keySet())
         {
             String name_html = files.get(path_md);
-            //IParserMd2Html parser = new ParserMd2Html(CMFile.fromString(path_md),Paths.get(path, dir, name_html));
+
+            Path inputPath = Paths.get(path_md);
+            Path outputPath = Paths.get(path,dir, name_html);
+            ICMFile cmFile = CMFile.fromPath(inputPath);
+            IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         }
     }
 }
