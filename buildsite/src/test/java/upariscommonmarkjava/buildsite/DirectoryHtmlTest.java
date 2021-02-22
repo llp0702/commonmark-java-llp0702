@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DirectoryHtmlTest {
     DirectoryMd correct_site;
@@ -40,10 +39,8 @@ public class DirectoryHtmlTest {
     @Test
     public void testSave()
     {
-        String path = "";
-
-        correct_html.save(path);
-        final File folder = new File(path);
+        assertDoesNotThrow(() ->  correct_html.save(""));
+        assertThrows(IOException.class, () ->  correct_html.save(""));
 
         //TODO
     }

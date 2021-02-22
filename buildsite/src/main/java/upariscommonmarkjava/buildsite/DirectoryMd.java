@@ -1,6 +1,7 @@
 package upariscommonmarkjava.buildsite;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.*;
 
 public class DirectoryMd {
@@ -71,6 +72,9 @@ public class DirectoryMd {
 
         paths_md = new ArrayList<>();
 
+        if(content == null)
+            return;
+
         for(File file : content.listFiles()) {
             if (file.getName().contains(".md")) {
                 paths_md.add(file.getAbsolutePath());
@@ -78,6 +82,10 @@ public class DirectoryMd {
         }
     }
 
+    public ArrayList<String> getPaths()
+    {
+        return this.paths_md;
+    }
 
     public DirectoryHtml generateHtml()
     {

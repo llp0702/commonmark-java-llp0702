@@ -16,7 +16,7 @@ class DirectoryMdTest {
         try
         {
             correct_site = DirectoryMd.open("src/test/resources/minimal");
-            incorrect_site = DirectoryMd.open("src/test/resources/minimal");
+            incorrect_site = DirectoryMd.open("src/test/resources/other");
         }
         catch(SiteFormatException e)
         {
@@ -56,15 +56,6 @@ class DirectoryMdTest {
     public void testOpen()
     {
         //Test2
-        assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open(""));
-
-        assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open(""));
-
-        assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open(""));
-
         assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open(""));
     }
