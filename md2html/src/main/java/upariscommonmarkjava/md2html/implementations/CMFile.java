@@ -2,9 +2,6 @@ package upariscommonmarkjava.md2html.implementations;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
 import java.io.IOException;
@@ -12,9 +9,10 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 @Builder
-@Slf4j
 public class CMFile implements ICMFile {
 
     public static CMFile fromString(final String cmString) throws IOException{
@@ -27,9 +25,16 @@ public class CMFile implements ICMFile {
 
     Reader reader;
 
+    Map<String, List<String>> metadata;
+
     @Override
     public Reader getReader(){
         return reader;
+    }
+
+    @Override
+    public void setMetadata(Map<String, List<String>> metadata) {
+        this.metadata = metadata;
     }
 
 }

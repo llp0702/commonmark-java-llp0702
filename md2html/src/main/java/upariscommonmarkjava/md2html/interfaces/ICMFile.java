@@ -1,10 +1,10 @@
 package upariscommonmarkjava.md2html.interfaces;
 
-import upariscommonmarkjava.md2html.implementations.CMFile;
-
 import java.io.Reader;
-import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 public interface ICMFile {
     Reader getReader();
+    void setMetadata(Map<String, List<String>> metadata);
 }
