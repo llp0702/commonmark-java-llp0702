@@ -43,8 +43,7 @@ allprojects {
             excludes=['com.thaiopensource.relaxng.impl.*']
         }
 
-        finalizedBy jacocoTestReport
-    }
+        finalizedBy jacocoTestReport    }
     jacocoTestReport {
         dependsOn test
         sourceDirectories.from files(sourceSets.main.allJava.srcDirs)

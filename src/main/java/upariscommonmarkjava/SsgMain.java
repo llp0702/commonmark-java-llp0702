@@ -2,16 +2,8 @@ package upariscommonmarkjava;
 
 import org.apache.commons.cli.*;
 import upariscommonmarkjava.md2html.Md2HtmlMain;
-import upariscommonmarkjava.md2html.implementations.CMFile;
-import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
-import upariscommonmarkjava.md2html.interfaces.ICMFile;
-import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -23,8 +15,9 @@ public class SsgMain {
         // create Options object
         Options options = ssgOptions();
         CommandLineParser parser = new DefaultParser();
+
         try {
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse( options, args, true );
             if(line.hasOption("h")){
                 if(line.getArgs().length>0 && commands.contains(line.getArgs()[0])){
                     work(line.getArgs()[0], options, Arrays.copyOfRange(args, 1, args.length));
