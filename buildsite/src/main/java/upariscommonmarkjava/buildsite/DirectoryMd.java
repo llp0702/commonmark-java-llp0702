@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class DirectoryMd {
-    protected  ArrayList<String> paths_md = null;
-    protected ItoMLFile toml_options = null;
+    protected  ArrayList<String> paths_md;
+    protected  ArrayList<String> paths_other;
+    protected ItoMLFile toml_options;
 
     public static DirectoryMd open(String path) throws SiteFormatException
     {
@@ -86,6 +87,7 @@ public class DirectoryMd {
     {
         this.toml_options = initOption(toml);
         paths_md = new ArrayList<>();
+        paths_other = new ArrayList<>();
 
         if(content == null)
             return;
@@ -93,6 +95,10 @@ public class DirectoryMd {
         for(File file : content.listFiles()) {
             if (file.getName().contains(".md")) {
                 paths_md.add(file.getAbsolutePath());
+            }
+            else
+            {
+                paths_other.add(file.getAbsolutePath());
             }
         }
     }
@@ -104,6 +110,6 @@ public class DirectoryMd {
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.toml_options,this.paths_md);
+        return DirectoryHtml.create(this.toml_options,this.paths_md,this.paths_other);
     }
 }

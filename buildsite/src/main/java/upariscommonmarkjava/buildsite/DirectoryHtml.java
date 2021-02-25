@@ -8,6 +8,7 @@ import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,21 +18,24 @@ public class DirectoryHtml {
 
     protected HashMap<String,String> files;
     protected ItoMLFile toml_options;
+    protected ArrayList<String> staticFiles;
 
-    public static DirectoryHtml create(ItoMLFile toml_options,ArrayList<String> htmlFiles)
+    public static DirectoryHtml create(ItoMLFile toml_options,ArrayList<String> htmlFiles, ArrayList<String> staticFiles)
     {
-        return new DirectoryHtml(toml_options,htmlFiles);
+        return new DirectoryHtml(toml_options,htmlFiles,staticFiles);
     }
 
-    protected DirectoryHtml(ItoMLFile toml_options,ArrayList<String> paths)
+    protected DirectoryHtml(ItoMLFile toml_options,ArrayList<String> htmlFiles, ArrayList<String> staticFiles)
     {
         this.toml_options = toml_options;
         files = new HashMap();
-        for(String path : paths)
+        for(String path : htmlFiles)
         {
             String name = name_html(path);
             files.put(path, name);
         }
+
+        this.staticFiles = staticFiles;
     }
 
     private String name_html(String path_md)
@@ -80,6 +84,10 @@ public class DirectoryHtml {
             tmp.mkdirs();
 
             converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
+        }
+
+        for(String static_path : this.staticFiles) {
+            Files.copy(Paths.get(static_path), Paths.get(path, dir, new File(static_path).getName()));
         }
     }
 }
