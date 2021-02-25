@@ -7,6 +7,7 @@ apply {
 mainClassName = 'upariscommonmarkjava.SsgMain'
 dependencies {
     implementation project(':md2html')
+    implementation project(':buildsite')
 }
 
 allprojects {
@@ -24,6 +25,8 @@ allprojects {
         implementation 'org.commonmark:commonmark:0.17.1'
         implementation 'org.commonmark:commonmark-ext-gfm-tables:0.17.1'
         implementation 'org.commonmark:commonmark-ext-yaml-front-matter:0.17.1'
+
+        implementation 'org.tomlj:tomlj:1.0.0'
 
         implementation 'commons-cli:commons-cli:1.4'
 
@@ -43,8 +46,7 @@ allprojects {
             excludes=['com.thaiopensource.relaxng.impl.*']
         }
 
-        finalizedBy jacocoTestReport
-    }
+        finalizedBy jacocoTestReport    }
     jacocoTestReport {
         dependsOn test
         sourceDirectories.from files(sourceSets.main.allJava.srcDirs)

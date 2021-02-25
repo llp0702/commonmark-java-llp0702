@@ -25,22 +25,25 @@ public class Md2HtmlMain {
             CommandLine line = parser.parse( options, args );
             if( line.hasOption("h")){
                 HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "ssg build <filename> [Options]", options );
+                formatter.printHelp( "ssg build [filename] [Options]", options );
             }else{
+                //Cas ou on utilise filename et non pas buildsite
+                if(!line.hasOption("i")){
+                    if(line.getArgs().length==0){
+                        throw new ParseException("Unspecified input file");
+                    }
+                    String fileInputPath = line.getArgs()[0];
 
-                if(line.getArgs().length==0){
-                    throw new ParseException("Unspecified input file");
+                    String outputDir = OUTPUT_DIR;
+                    if( line.hasOption( "o" ) ) {
+                        outputDir = line.getOptionValue("o");
+                        if(!outputDir.endsWith("/"))outputDir += "/";
+                    }
+
+                    workMd2Html(fileInputPath, outputDir);
+                }else{
+                    //Cas ou on utilise buildsite
                 }
-
-                String fileInputPath = line.getArgs()[0];
-
-                String outputDir = OUTPUT_DIR;
-                if( line.hasOption( "o" ) ) {
-                    outputDir = line.getOptionValue("o");
-                    if(!outputDir.endsWith("/"))outputDir += "/";
-                }
-
-                work(fileInputPath, outputDir);
             }
         }
         catch(ParseException | IOException exp ) {
@@ -58,10 +61,15 @@ public class Md2HtmlMain {
         options.addOption( Option.builder("o").longOpt("output-dir").numberOfArgs(1).argName("DIR")
                 .desc("Les fichiers sont produits dans le répertoire _output/ par défaut, ou dans le répertoire DIR ")
                 .build() );
+        options.addOption(Option.builder("i").longOpt("input-dir").numberOfArgs(1).argName("DIR")
+                .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. La présence des fichiers " +
+                        "DIR/site.toml et DIR/content/index.md est nécessaire. Si cette option est utilisée, la présence" +
+                        "de l'argument filename devient insensée")
+                .build());
         return options;
     }
 
-    public static void work(final String filePath, final String outputDir) throws IOException {
+    public static void workMd2Html(final String filePath, final String outputDir) throws IOException {
         Path inputPath = Paths.get(filePath);
         String filenameInput = inputPath.getFileName().toString();
         String filenameOutput = filenameInput.substring(0, filenameInput.lastIndexOf('.'))+".html";

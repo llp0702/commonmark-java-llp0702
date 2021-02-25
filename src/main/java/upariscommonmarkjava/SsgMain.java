@@ -2,29 +2,22 @@ package upariscommonmarkjava;
 
 import org.apache.commons.cli.*;
 import upariscommonmarkjava.md2html.Md2HtmlMain;
-import upariscommonmarkjava.md2html.implementations.CMFile;
-import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
-import upariscommonmarkjava.md2html.interfaces.ICMFile;
-import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class SsgMain {
-    public final static List<String> commands = List.of("build");
-
+    public static final List<String> commands = List.of("build", "help");
+    static Logger logger;
     public static void main(String[] args) {
-        Logger logger = Logger.getAnonymousLogger();
+        logger = Logger.getAnonymousLogger();
         // create Options object
         Options options = ssgOptions();
         CommandLineParser parser = new DefaultParser();
+
         try {
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse( options, args, true );
             if(line.hasOption("h")){
                 if(line.getArgs().length>0 && commands.contains(line.getArgs()[0])){
                     work(line.getArgs()[0], options, Arrays.copyOfRange(args, 1, args.length));
@@ -55,7 +48,7 @@ public class SsgMain {
 
     private static void help(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ssg <command> [args] [Options]", options);
+        formatter.printHelp( "ssg <build | help> [args] [Options]\nbuild\tfor converting md file or website (use ssg build -h for more info)\nhelp\tShows this message\n", options);
     }
 
 
@@ -66,8 +59,9 @@ public class SsgMain {
     }
 
     public static void work(String command, Options options, String[] args){
-        if(!commands.contains(command)){
+        if((command==null) || (!commands.contains(command)) || (command.equals("help")) ){
             help(options);
+            return;
         }
         if(command.equals("build")){
             Md2HtmlMain.main(args);
