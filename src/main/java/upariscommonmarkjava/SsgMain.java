@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class SsgMain {
-    public final static List<String> commands = List.of("build", "help");
+    public static final List<String> commands = List.of("build", "help");
     static Logger logger;
     public static void main(String[] args) {
         logger = Logger.getAnonymousLogger();

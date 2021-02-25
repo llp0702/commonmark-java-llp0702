@@ -21,12 +21,12 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class ParserMd2HtmlTest {
+class ParserMd2HtmlTest {
 
     public static final String CMEXAMPLE_1_MD = "cmexample1.md";
 
     @Test
-    public void testConvertCm() throws Exception {
+    void testConvertCm() throws Exception {
         //Given
         CMFile cmFile = getCMResourceFile(CMEXAMPLE_1_MD);
         ConverterMd2Html converter = new ConverterMd2Html();
@@ -41,7 +41,7 @@ public class ParserMd2HtmlTest {
     }
 
     @Test
-    public void testParseAndConvert2HtmlAndSave() throws IOException {
+    void testParseAndConvert2HtmlAndSave() throws IOException {
         //Given
         CMFile cmFile = getCMResourceFile(CMEXAMPLE_1_MD);
         String dest = "/tmp/output.html";
