@@ -33,16 +33,14 @@ public class DirectoryHtmlTest {
 
         final File folder = new File("");
 
-        assertTrue(correct_html.isSimilare(folder));
+        assertFalse(correct_html.isSimilare(folder));
     }
 
     @Test
     public void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save(""));
+        assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
         assertThrows(IOException.class, () ->  correct_html.save(""));
-
-        //TODO
     }
 
     @Test

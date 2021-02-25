@@ -38,11 +38,12 @@ public class DirectoryHtml {
 
     public boolean isSimilare(DirectoryMd d)
     {
+
         if(d.getPaths().size() != this.files.size())
             return false;
 
         for(String path_md : d.getPaths()) {
-            if (!this.files.containsKey(name_html(path_md)))
+            if (!this.files.containsKey(path_md))
                 return false;
         }
         return true;
@@ -67,9 +68,14 @@ public class DirectoryHtml {
             String name_html = files.get(path_md);
 
             Path inputPath = Paths.get(path_md);
-            Path outputPath = Paths.get(path,dir, name_html);
+            Path output_folder = Paths.get(path,dir);
+            Path outputPath = Paths.get(output_folder.toString(), name_html);
             ICMFile cmFile = CMFile.fromPath(inputPath);
             IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+
+            File tmp = new File(output_folder.toString());
+            tmp.mkdirs();
+
             converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         }
     }
