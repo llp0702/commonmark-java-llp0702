@@ -24,10 +24,11 @@ public class ConverterMd2Html implements IConverterMd2Html {
         htmlRenderer = HtmlRenderer.builder().extensions(extensions).build();
     }
 
-    final private Parser parser;
-    final private HtmlRenderer htmlRenderer;
+    private final Parser parser;
+    private final HtmlRenderer htmlRenderer;
     public Node parseAndConvert2HtmlAndSave(ICMFile cmFile)throws IOException {
         return parser.parseReader(cmFile.getReader());
+        
     }
 
     @Override

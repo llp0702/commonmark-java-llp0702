@@ -5,13 +5,14 @@ import upariscommonmarkjava.md2html.Md2HtmlMain;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SsgMain {
-    public final static List<String> commands = List.of("build");
-
+    public final static List<String> commands = List.of("build", "help");
+    static Logger logger;
     public static void main(String[] args) {
-        Logger logger = Logger.getAnonymousLogger();
+        logger = Logger.getAnonymousLogger();
         // create Options object
         Options options = ssgOptions();
         CommandLineParser parser = new DefaultParser();
@@ -48,7 +49,8 @@ public class SsgMain {
 
     private static void help(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ssg <command> [args] [Options]", options);
+        formatter.printHelp( "ssg <build | help> [args] [Options]", options);
+        logger.info("build is for converting md file or website (use ssg build -h for more info)");
     }
 
 
@@ -59,8 +61,9 @@ public class SsgMain {
     }
 
     public static void work(String command, Options options, String[] args){
-        if(!commands.contains(command)){
+        if((command==null) || (!commands.contains(command)) || (command.equals("help")) ){
             help(options);
+            return;
         }
         if(command.equals("build")){
             Md2HtmlMain.main(args);
