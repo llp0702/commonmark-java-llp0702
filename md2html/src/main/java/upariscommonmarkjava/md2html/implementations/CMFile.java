@@ -2,6 +2,7 @@ package upariscommonmarkjava.md2html.implementations;
 
 import lombok.Builder;
 import lombok.Data;
+import org.tomlj.TomlParseResult;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ public class CMFile implements ICMFile {
 
     Map<String, List<String>> metadata;
 
+    TomlParseResult tomlParseResult;
+
     @Override
     public Reader getReader(){
         return reader;
@@ -35,6 +38,11 @@ public class CMFile implements ICMFile {
     @Override
     public void setMetadata(Map<String, List<String>> metadata) {
         this.metadata = metadata;
+    }
+
+    @Override
+    public void setTomlMetadata(TomlParseResult parseResult) {
+        this.tomlParseResult = parseResult;
     }
 
 }
