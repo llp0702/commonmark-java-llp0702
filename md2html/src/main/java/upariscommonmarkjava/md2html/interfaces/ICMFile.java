@@ -4,7 +4,6 @@ import org.tomlj.TomlParseResult;
 
 import java.io.Reader;
 
-public interface ICMFile {
-    Reader getReader();
+public interface ICMFile extends IFile{
     void setTomlMetadata(TomlParseResult parseResult);
 }
