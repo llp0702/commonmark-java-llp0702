@@ -1,13 +1,11 @@
 package upariscommonmarkjava.md2html.implementations;
 
 import org.commonmark.Extension;
-import org.commonmark.ext.front.matter.YamlFrontMatterVisitor;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
-import upariscommonmarkjava.md2html.implementations.extensions.yaml.YamlMeta;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 

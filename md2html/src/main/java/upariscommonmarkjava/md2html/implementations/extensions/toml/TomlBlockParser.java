@@ -2,7 +2,6 @@ package upariscommonmarkjava.md2html.implementations.extensions.toml;
 
 import org.commonmark.internal.DocumentBlockParser;
 import org.commonmark.node.Block;
-import org.commonmark.parser.InlineParser;
 import org.commonmark.parser.block.*;
 
 import java.util.regex.Pattern;

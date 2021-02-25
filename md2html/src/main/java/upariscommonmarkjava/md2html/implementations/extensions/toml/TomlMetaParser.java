@@ -4,7 +4,6 @@ import lombok.NoArgsConstructor;
 import org.commonmark.Extension;
 import org.commonmark.parser.Parser;
 import org.commonmark.parser.block.BlockParserFactory;
-import upariscommonmarkjava.md2html.implementations.extensions.yaml.YamlMeta;
 
 @NoArgsConstructor
 public class TomlMetaParser implements Parser.ParserExtension{
