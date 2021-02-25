@@ -15,14 +15,16 @@ public class DirectoryMd {
         File folder = new File(path);
         //System.out.println(folder.getAbsolutePath());
 
+        File[] files = folder.listFiles();
+
         if(folder.isDirectory())
         {
-            Optional<File> optToml = Arrays.stream(folder.listFiles())
+            Optional<File> optToml = Arrays.stream(files)
                     .filter(x -> x.getName().equals("site.toml")).findAny();
 
             if(optToml.isPresent())
             {
-                Optional<File> optContent = Arrays.stream(folder.listFiles())
+                Optional<File> optContent = Arrays.stream(files)
                         .filter(x -> x.getName().equals("content")).findAny();
 
                 if(optContent.isPresent())
