@@ -1,6 +1,11 @@
 package upariscommonmarkjava.buildsite;
 
+import upariscommonmarkjava.md2html.implementations.TomlFile;
+import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,7 +13,7 @@ import java.util.Optional;
 
 public class DirectoryMd {
     protected  ArrayList<String> paths_md = null;
-    protected HashMap<String, String> options = null;
+    protected ItoMLFile toml_options = null;
 
     public static DirectoryMd open(String path) throws SiteFormatException
     {
@@ -35,7 +40,14 @@ public class DirectoryMd {
 
                         if (optIndex.isPresent())
                         {
-                            return new DirectoryMd(optToml.get(), optContent.get());
+                            try
+                            {
+                                return new DirectoryMd(optToml.get(), optContent.get());
+                            }
+                            catch (IOException ioe)
+                            {
+                                throw new SiteFormatException("Error IOException : " + ioe.getMessage());
+                            }
                         }
                         else
                         {
@@ -63,17 +75,16 @@ public class DirectoryMd {
         }
     }
 
-    private void initOption(File toml)
+    private ItoMLFile initOption(File toml) throws IOException
     {
-        options = new HashMap<>();
-
-        //TODO
+        TomlFile it = TomlFile.fromPath(Paths.get(toml.getAbsolutePath()));
+        it.parse();
+        return it;
     }
 
-    protected DirectoryMd(File toml, File content)
+    protected DirectoryMd(File toml, File content) throws IOException
     {
-        initOption(toml);
-
+        this.toml_options = initOption(toml);
         paths_md = new ArrayList<>();
 
         if(content == null)
@@ -93,6 +104,6 @@ public class DirectoryMd {
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.paths_md,this.options);
+        return DirectoryHtml.create(this.toml_options,this.paths_md);
     }
 }

@@ -4,6 +4,7 @@ import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,14 +16,16 @@ import java.util.HashMap;
 public class DirectoryHtml {
 
     protected HashMap<String,String> files;
+    protected ItoMLFile toml_options;
 
-    public static DirectoryHtml create(ArrayList<String> htmlFiles, HashMap<String, String> options)
+    public static DirectoryHtml create(ItoMLFile toml_options,ArrayList<String> htmlFiles)
     {
-        return new DirectoryHtml(htmlFiles,options);
+        return new DirectoryHtml(toml_options,htmlFiles);
     }
 
-    protected DirectoryHtml(ArrayList<String> paths, HashMap<String, String> option_toml)
+    protected DirectoryHtml(ItoMLFile toml_options,ArrayList<String> paths)
     {
+        this.toml_options = toml_options;
         files = new HashMap();
         for(String path : paths)
         {
