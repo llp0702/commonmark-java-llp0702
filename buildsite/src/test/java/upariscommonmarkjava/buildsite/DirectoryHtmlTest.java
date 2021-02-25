@@ -41,7 +41,8 @@ public class DirectoryHtmlTest {
     public void testSave()
     {
         assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
-        assertThrows(Exception.class, () ->  correct_html.save("/////////"));
+
+        assertThrows(Exception.class, () ->  correct_html.save("/////////:"));
     }
 
     @Test
