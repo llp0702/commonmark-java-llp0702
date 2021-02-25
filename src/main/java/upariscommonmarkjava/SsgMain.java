@@ -48,8 +48,7 @@ public class SsgMain {
 
     private static void help(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ssg <build | help> [args] [Options]", options);
-        logger.info("build is for converting md file or website (use ssg build -h for more info)");
+        formatter.printHelp( "ssg <build | help> [args] [Options]\nbuild\tfor converting md file or website (use ssg build -h for more info)\nhelp\tShows this message\n", options);
     }
 
 
