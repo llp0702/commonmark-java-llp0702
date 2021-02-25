@@ -14,7 +14,6 @@ import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

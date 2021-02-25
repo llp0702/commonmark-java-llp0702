@@ -1,7 +1,6 @@
 package upariscommonmarkjava.md2html.interfaces;
 
 import org.commonmark.node.Node;
-import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -1,11 +1,11 @@
 package upariscommonmarkjava.md2html.implementations;
 
 import org.commonmark.Extension;
-import org.commonmark.ext.front.matter.YamlFrontMatterVisitor;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import upariscommonmarkjava.md2html.implementations.extensions.yaml.YamlMeta;
+import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
+import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 
@@ -19,24 +19,25 @@ import java.util.List;
 
 public class ConverterMd2Html implements IConverterMd2Html {
     public ConverterMd2Html(){
-        final List<Extension> extensions = Collections.singletonList(YamlMeta.create());
+        final List<Extension> extensions = Collections.singletonList(TomlMetaParser.create());
         parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder().extensions(extensions).build();
     }
 
-    final private Parser parser;
-    final private HtmlRenderer htmlRenderer;
+    private final Parser parser;
+    private final HtmlRenderer htmlRenderer;
     public Node parseAndConvert2HtmlAndSave(ICMFile cmFile)throws IOException {
         return parser.parseReader(cmFile.getReader());
+
     }
 
     @Override
     public String parseAndConvert2Html(ICMFile cmFile) throws IOException {
         Node document = parseAndConvert2HtmlAndSave(cmFile);
         String res = htmlRenderer.render(document);
-        YamlFrontMatterVisitor t = new YamlFrontMatterVisitor();
+        TomlVisitor t = new TomlVisitor();
         document.accept(t);
-        cmFile.setMetadata(t.getData());
+        cmFile.setTomlMetadata(t.getData());
         return wrapHtmlBody(res);
     }
 
