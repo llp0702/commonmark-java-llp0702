@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,16 +34,13 @@ public class DirectoryHtmlTest {
 
         final File folder = new File("");
 
-        assertTrue(correct_html.isSimilare(folder));
+        assertFalse(correct_html.isSimilare(folder));
     }
 
     @Test
     public void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save(""));
-        assertThrows(IOException.class, () ->  correct_html.save(""));
-
-        //TODO
+        assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
     }
 
     @Test

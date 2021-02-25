@@ -1,21 +1,31 @@
 package upariscommonmarkjava.buildsite;
 
+import upariscommonmarkjava.md2html.implementations.CMFile;
+import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ICMFile;
+import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DirectoryHtml {
 
     protected HashMap<String,String> files;
+    protected ItoMLFile toml_options;
 
-    public static DirectoryHtml create(ArrayList<String> htmlFiles, HashMap<String, String> options)
+    public static DirectoryHtml create(ItoMLFile toml_options,ArrayList<String> htmlFiles)
     {
-        return new DirectoryHtml(htmlFiles,options);
+        return new DirectoryHtml(toml_options,htmlFiles);
     }
 
-    protected DirectoryHtml(ArrayList<String> paths, HashMap<String, String> option_toml)
+    protected DirectoryHtml(ItoMLFile toml_options,ArrayList<String> paths)
     {
+        this.toml_options = toml_options;
         files = new HashMap();
         for(String path : paths)
         {
@@ -31,11 +41,12 @@ public class DirectoryHtml {
 
     public boolean isSimilare(DirectoryMd d)
     {
+
         if(d.getPaths().size() != this.files.size())
             return false;
 
         for(String path_md : d.getPaths()) {
-            if (!this.files.containsKey(name_html(path_md)))
+            if (!this.files.containsKey(path_md))
                 return false;
         }
         return true;
@@ -58,7 +69,17 @@ public class DirectoryHtml {
         for(String path_md : this.files.keySet())
         {
             String name_html = files.get(path_md);
-            //IParserMd2Html parser = new ParserMd2Html(CMFile.fromString(path_md),Paths.get(path, dir, name_html));
+
+            Path inputPath = Paths.get(path_md);
+            Path output_folder = Paths.get(path,dir);
+            Path outputPath = Paths.get(output_folder.toString(), name_html);
+            ICMFile cmFile = CMFile.fromPath(inputPath);
+            IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+
+            File tmp = new File(output_folder.toString());
+            tmp.mkdirs();
+
+            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         }
     }
 }
