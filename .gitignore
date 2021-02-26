@@ -1,7 +1,7 @@
-.gradle/*
+.gradle/**
 .gradle/
 .idea/
-.idea/*
+.idea/**
 **/.gradle/
-build/*
-*/build/*
+build/**
+**/build/**
