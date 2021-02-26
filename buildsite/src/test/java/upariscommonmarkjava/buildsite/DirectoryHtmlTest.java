@@ -9,7 +9,7 @@ import java.nio.file.InvalidPathException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DirectoryHtmlTest {
+class DirectoryHtmlTest {
     DirectoryMd correct_site;
     DirectoryHtml correct_html;
 
@@ -40,7 +40,7 @@ public class DirectoryHtmlTest {
     }
 
     @Test
-    public void testIsSimilare()
+    void testIsSimilare()
     {
         assertTrue(isSimilare(correct_html,correct_site));
     }
@@ -48,13 +48,13 @@ public class DirectoryHtmlTest {
 
 
     @Test
-    public void testSave()
+    void testSave()
     {
         assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
     }
 
     @Test
-    public void testCreate()
+    void testCreate()
     {
         assertTrue(isSimilare(correct_html,correct_site));
     }
