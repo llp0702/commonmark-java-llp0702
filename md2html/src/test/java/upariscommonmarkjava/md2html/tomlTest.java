@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 
-public class tomlTest {
+class tomlTest {
 
     public TomlFile getRessource(String filename) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -22,7 +22,7 @@ public class tomlTest {
         return TomlFile.fromString(new String(inputStreamInput.readAllBytes()));
     }
     @Test
-    public void testTOMLparsing() throws IOException {
+    void testTOMLparsing() throws IOException {
 
         TomlFile tomlFile = getRessource("site.toml");
         tomlFile.parse();

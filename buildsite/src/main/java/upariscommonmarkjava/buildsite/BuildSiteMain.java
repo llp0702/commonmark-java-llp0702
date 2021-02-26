@@ -30,10 +30,8 @@ public class BuildSiteMain {
                 }
 
                 DirectoryHtml directoryHtml = directoryMd.generateHtml();
-                System.out.println("current_directory :" + current_directory);
 
                 if(line.hasOption("o")) {
-                    System.out.println("option :" + line.getOptionValue("o"));
                     directoryHtml.save(current_directory, line.getOptionValue("o"));
                 }
                 else
