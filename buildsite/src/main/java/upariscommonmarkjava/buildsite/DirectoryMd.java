@@ -15,6 +15,7 @@ public class DirectoryMd {
     protected  ArrayList<String> paths_md;
     protected  ArrayList<String> paths_other;
     protected ItoMLFile toml_options;
+    private String input_path;
 
     public static DirectoryMd open(String path) throws SiteFormatException
     {
@@ -83,24 +84,37 @@ public class DirectoryMd {
         return it;
     }
 
-    protected DirectoryMd(File toml, File content) throws IOException
-    {
-        this.toml_options = initOption(toml);
-        paths_md = new ArrayList<>();
-        paths_other = new ArrayList<>();
-
+    protected void parcours(File content, String path){
         if(content == null)
             return;
 
         for(File file : content.listFiles()) {
-            if (file.getName().contains(".md")) {
-                paths_md.add(file.getAbsolutePath());
+            if(file == null)
+                continue;
+
+            if(file.isDirectory())
+            {
+                parcours(file, path + "/" + file.getName());
+            }
+            else if (file.getName().endsWith(".md"))
+            {
+                paths_md.add(path + "/" + file.getName());
             }
             else
             {
-                paths_other.add(file.getAbsolutePath());
+                paths_other.add(path + "/" + file.getName());
             }
         }
+    }
+
+    protected DirectoryMd(File toml, File content) throws IOException
+    {
+        this.input_path = content.getAbsolutePath();
+        this.toml_options = initOption(toml);
+        paths_md = new ArrayList<>();
+        paths_other = new ArrayList<>();
+
+        parcours(content,"");
     }
 
     public ArrayList<String> getPaths()
@@ -110,6 +124,6 @@ public class DirectoryMd {
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.toml_options,this.paths_md,this.paths_other);
+        return DirectoryHtml.create(this.input_path,this.toml_options,this.paths_md,this.paths_other);
     }
 }

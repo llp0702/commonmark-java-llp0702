@@ -1,6 +1,7 @@
 package upariscommonmarkjava;
 
 import org.apache.commons.cli.*;
+import upariscommonmarkjava.buildsite.BuildSiteMain;
 import upariscommonmarkjava.md2html.Md2HtmlMain;
 
 import java.util.Arrays;
@@ -63,8 +64,13 @@ public class SsgMain {
             help(options);
             return;
         }
+
         if(command.equals("build")){
-            Md2HtmlMain.main(args);
+            if(Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))){
+                Md2HtmlMain.main(args);
+            }else{
+                BuildSiteMain.main(args);
+            }
         }
 
     }
