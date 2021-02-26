@@ -65,7 +65,7 @@ class DirectoryMdTest {
     public void testGenerateHtml()
     {
         final DirectoryHtml correct_html = correct_site.generateHtml();
-        assertTrue(correct_html.isSimilare(correct_site));
-        assertFalse(correct_html.isSimilare(incorrect_site));
+        assertTrue(DirectoryHtmlTest.isSimilare(correct_html,correct_site));
+        assertFalse(DirectoryHtmlTest.isSimilare(correct_html,incorrect_site));
     }
 }

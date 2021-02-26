@@ -13,6 +13,18 @@ public class DirectoryHtmlTest {
     DirectoryMd correct_site;
     DirectoryHtml correct_html;
 
+    public static boolean isSimilare(DirectoryHtml dh,DirectoryMd d)
+    {
+        if(d.getPaths().size() != dh.files.size())
+            return false;
+
+        for(String path_md : d.getPaths()) {
+            if (!dh.files.containsKey(path_md))
+                return false;
+        }
+        return true;
+    }
+
     @BeforeEach
     public void initCorrectSite()
     {
@@ -30,12 +42,10 @@ public class DirectoryHtmlTest {
     @Test
     public void testIsSimilare()
     {
-        assertTrue(correct_html.isSimilare(correct_site));
-
-        final File folder = new File("");
-
-        assertFalse(correct_html.isSimilare(folder));
+        assertTrue(isSimilare(correct_html,correct_site));
     }
+
+
 
     @Test
     public void testSave()
@@ -46,6 +56,6 @@ public class DirectoryHtmlTest {
     @Test
     public void testCreate()
     {
-        assertTrue(correct_html.isSimilare(correct_site));
+        assertTrue(isSimilare(correct_html,correct_site));
     }
 }
