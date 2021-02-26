@@ -8,9 +8,8 @@ import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -76,11 +75,42 @@ public class DirectoryHtml {
 
             Path inputPath = Paths.get(path_md);
             Path output_folder = Paths.get(path,dir);
+
             Path outputPath = Paths.get(output_folder.toString(), name_html);
             ICMFile cmFile = CMFile.fromPath(inputPath);
             IConverterMd2Html converterMd2Html = new ConverterMd2Html();
 
             File tmp = new File(output_folder.toString());
+
+            if(tmp.exists())
+                Files.walkFileTree(output_folder,
+                        new SimpleFileVisitor<>() {
+
+                            // delete directories or folders
+                            @Override
+                            public FileVisitResult postVisitDirectory(Path dir,
+                                                                      IOException exc)
+                                    throws IOException {
+                                Files.delete(dir);
+                                System.out.printf("Directory is deleted : %s%n", dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            // delete files
+                            @Override
+                            public FileVisitResult visitFile(Path file,
+                                                             BasicFileAttributes attrs)
+                                    throws IOException {
+                                Files.delete(file);
+                                System.out.printf("File is deleted : %s%n", file);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        }
+                );
+
+
+
+            System.out.println("TEST : " + tmp.exists());
             tmp.mkdirs();
 
             converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
