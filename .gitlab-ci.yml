@@ -13,22 +13,24 @@ cache:
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
-build:
+build-and-deploy:
   stage: build
-  script: gradle build
+  script: gradle build codeCoverageReport
+  artifacts:
+    name: "archive-$CI_COMMIT_REF_NAME"
+    reports:
+      junit: "*/build/test-results/test/TEST-*.xml"
+    paths:
+      - "*/build/reports/"
+      - build/libs/ssg-*.jar
+      - build/scripts/ssg
+    expire_in: 1 week
   cache:
     key: "$CI_COMMIT_REF_NAME"
-    policy: push
     paths:
-      - build
       - .gradle
 
-test:
+code-coverage:
   stage: test
-  script: gradle test
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: pull
-    paths:
-      - build
-      - .gradle
+  image: alpine:latest
+  script: cat */build/reports/jacoco/test/html/index.html

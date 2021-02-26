@@ -21,6 +21,7 @@ allprojects {
     dependencies {
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
         testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
         implementation 'org.commonmark:commonmark:0.17.1'
         implementation 'org.commonmark:commonmark-ext-gfm-tables:0.17.1'
@@ -36,20 +37,30 @@ allprojects {
         testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
 
         implementation 'nu.validator:validator:20.6.30'
-        testImplementation  'nu.validator:validator:20.6.30'
+        testImplementation 'nu.validator:validator:20.6.30'
     }
     tasks.named('test') {
         useJUnitPlatform()
-
         //This avoids StackOverflowException during Jacoco report
         jacoco {
-            excludes=['com.thaiopensource.relaxng.impl.*']
+            excludes = ['com.thaiopensource.relaxng.impl.*']
         }
-
-        finalizedBy jacocoTestReport    }
-    jacocoTestReport {
-        dependsOn test
-        sourceDirectories.from files(sourceSets.main.allJava.srcDirs)
+        finalizedBy jacocoTestReport
     }
+
+    task codeCoverageReport(type: JacocoReport) {
+        executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+        subprojects.each {
+            sourceSets it.sourceSets.main
+        }
+        reports {
+            xml.enabled true
+            xml.destination file("${buildDir}/reports/jacoco/report.xml")
+            html.enabled false
+            csv.enabled false
+        }
+    }
+    codeCoverageReport.dependsOn { test }
 }
 
