@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 
-class tomlTest {
+class TomlTest {
 
     public TomlFile getRessource(String filename) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();

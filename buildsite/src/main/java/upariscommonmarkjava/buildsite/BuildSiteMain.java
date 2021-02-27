@@ -15,8 +15,7 @@ public class BuildSiteMain {
         try {
             CommandLine line = parser.parse( options, args );
             if( line.hasOption("h")){
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "ssg build [Options]", options);
+                help();
             }else{
                 String current_directory = System.getProperty("user.dir");
                 DirectoryMd directoryMd;
@@ -47,6 +46,11 @@ public class BuildSiteMain {
         }
     }
 
+    public static void help() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp( "ssg build [Options]", buildsiteMainOptions());
+    }
+
     public static Options buildsiteMainOptions(){
         Options options = new Options();
         options.addOption(Option.builder("h").longOpt("help").desc("Affiche ce message" ).build() );
@@ -54,9 +58,9 @@ public class BuildSiteMain {
                 .desc("Les fichiers sont produits dans le répertoire _output/ par défaut, ou dans le répertoire DIR ")
                 .build() );
         options.addOption(Option.builder("i").longOpt("input-dir").numberOfArgs(1).argName("DIR")
-                .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. La présence des fichiers " +
-                        "DIR/site.toml et DIR/content/index.md est nécessaire. Si cette option est utilisée, la présence" +
-                        "de l'argument filename devient insensée")
+                .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. DIR vaut le répertoire " +
+                        "courant par défaut. La présence des fichiers " +
+                        "DIR/site.toml et DIR/content/index.md est nécessaire.")
                 .build());
         return options;
     }
