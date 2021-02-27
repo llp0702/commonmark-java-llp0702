@@ -25,7 +25,7 @@ class DirectoryMdTest {
     }
 
     @Test
-    public void testIndexPresent()
+    void testIndexPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open("src/test/resources/no_index"));
@@ -34,7 +34,7 @@ class DirectoryMdTest {
     }
 
     @Test
-    public void testTomlPresent()
+    void testTomlPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open("src/test/resources/no_toml"));
@@ -43,7 +43,7 @@ class DirectoryMdTest {
     }
 
     @Test
-    public void testContentPresent()
+    void testContentPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open("src/test/resources/no_content"));
@@ -53,7 +53,7 @@ class DirectoryMdTest {
 
     //vérifie le correcte chargement des fichiers md
     @Test
-    public void testOpen()
+    void testOpen()
     {
         //Test2
         assertThrows(SiteFormatException.class,
@@ -62,10 +62,10 @@ class DirectoryMdTest {
 
     //Vérifie la bonne génération du site
     @Test
-    public void testGenerateHtml()
+    void testGenerateHtml()
     {
         final DirectoryHtml correct_html = correct_site.generateHtml();
-        assertTrue(correct_html.isSimilare(correct_site));
-        assertFalse(correct_html.isSimilare(incorrect_site));
+        assertTrue(DirectoryHtmlTest.isSimilare(correct_html,correct_site));
+        assertFalse(DirectoryHtmlTest.isSimilare(correct_html,incorrect_site));
     }
 }

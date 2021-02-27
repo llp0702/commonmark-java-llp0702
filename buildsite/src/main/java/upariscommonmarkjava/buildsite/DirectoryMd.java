@@ -8,72 +8,50 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 public class DirectoryMd {
-    protected  ArrayList<String> paths_md;
-    protected  ArrayList<String> paths_other;
-    protected ItoMLFile toml_options;
+    protected final ArrayList<String> pathsMd;
+    protected final ArrayList<String> pathsOther;
+    protected final ItoMLFile tomlOptions;
+    private final String inputPath;
 
-    public static DirectoryMd open(String path) throws SiteFormatException
+
+    public static DirectoryMd open(final String path) throws SiteFormatException
     {
         File folder = new File(path);
-        //System.out.println(folder.getAbsolutePath());
+        if(!folder.isDirectory())throw new SiteFormatException("The file is not a folder");
 
         File[] files = folder.listFiles();
 
-        if(folder.isDirectory())
+        if(files==null)throw new SiteFormatException("No files found");
+
+        Optional<File> optToml = Arrays.stream(files)
+                .filter(x -> x.getName().equals("site.toml")).findAny();
+        if(optToml.isEmpty())throw new SiteFormatException("No Site.Toml founded ! ");
+
+        Optional<File> optContent = Arrays.stream(files)
+                .filter(x -> x.getName().equals("content")).findAny();
+        if(optContent.isEmpty())throw new SiteFormatException("No content folder ! ");
+        if(!optContent.get().isDirectory())throw new SiteFormatException("Content is not a folder ! ");
+        File content = optContent.get();
+        File[] contentFiles = content.listFiles();
+        if(contentFiles==null)throw new SiteFormatException("Content is empty");
+        Optional<File> optIndex = Arrays.stream(contentFiles)
+                .filter(x -> x.getName().equals("index.md")).findAny();
+
+        if (optIndex.isEmpty())throw new SiteFormatException("No index.md founded ! ");
+
+        try
         {
-            Optional<File> optToml = Arrays.stream(files)
-                    .filter(x -> x.getName().equals("site.toml")).findAny();
-
-            if(optToml.isPresent())
-            {
-                Optional<File> optContent = Arrays.stream(files)
-                        .filter(x -> x.getName().equals("content")).findAny();
-
-                if(optContent.isPresent())
-                {
-                    if(optContent.get().isDirectory()) {
-                        Optional<File> optIndex = Arrays.stream(optContent.get().listFiles())
-                                .filter(x -> x.getName().equals("index.md")).findAny();
-
-                        if (optIndex.isPresent())
-                        {
-                            try
-                            {
-                                return new DirectoryMd(optToml.get(), optContent.get());
-                            }
-                            catch (IOException ioe)
-                            {
-                                throw new SiteFormatException("Error IOException : " + ioe.getMessage());
-                            }
-                        }
-                        else
-                        {
-                            throw new SiteFormatException("No index.md founded ! ");
-                        }
-                    }
-                    else
-                    {
-                        throw new SiteFormatException("Content is not a folder ! ");
-                    }
-                }
-                else
-                {
-                    throw new SiteFormatException("No content folder ! ");
-                }
-            }
-            else
-            {
-                throw new SiteFormatException("No Site.Toml founded ! ");
-            }
+            return new DirectoryMd(optToml.get(), content);
         }
-        else
+        catch (IOException ioe)
         {
-            throw new SiteFormatException("The file is not a folder!");
+            throw new SiteFormatException("Error IOException : " + ioe.getMessage());
         }
+
     }
 
     private ItoMLFile initOption(File toml) throws IOException
@@ -83,33 +61,49 @@ public class DirectoryMd {
         return it;
     }
 
-    protected DirectoryMd(File toml, File content) throws IOException
-    {
-        this.toml_options = initOption(toml);
-        paths_md = new ArrayList<>();
-        paths_other = new ArrayList<>();
-
+    protected void parcours(File content, String path){
         if(content == null)
             return;
+        File[] contentFiles = content.listFiles();
+        if(contentFiles==null)
+            return;
 
-        for(File file : content.listFiles()) {
-            if (file.getName().contains(".md")) {
-                paths_md.add(file.getAbsolutePath());
+        for(File file : contentFiles) {
+            if(file == null)
+                continue;
+
+            if(file.isDirectory())
+            {
+                parcours(file, path + "/" + file.getName());
+            }
+            else if (file.getName().endsWith(".md"))
+            {
+                pathsMd.add(path + "/" + file.getName());
             }
             else
             {
-                paths_other.add(file.getAbsolutePath());
+                pathsOther.add(path + "/" + file.getName());
             }
         }
     }
 
-    public ArrayList<String> getPaths()
+    protected DirectoryMd(File toml, File content) throws IOException
     {
-        return this.paths_md;
+        this.inputPath = content.getAbsolutePath();
+        this.tomlOptions = initOption(toml);
+        pathsMd = new ArrayList<>();
+        pathsOther = new ArrayList<>();
+
+        parcours(content,"");
+    }
+
+    public List<String> getPaths()
+    {
+        return this.pathsMd;
     }
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.toml_options,this.paths_md,this.paths_other);
+        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther);
     }
 }
