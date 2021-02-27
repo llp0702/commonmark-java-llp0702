@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Optional;
 
 public class DirectoryMd {
-    protected  ArrayList<String> pathsMd;
-    protected  ArrayList<String> pathsOther;
-    protected ItoMLFile tomlOptions;
+    protected final ArrayList<String> pathsMd;
+    protected final ArrayList<String> pathsOther;
+    protected final ItoMLFile tomlOptions;
     private final String inputPath;
 
 
-    public static DirectoryMd open(String path) throws SiteFormatException
+    public static DirectoryMd open(final String path) throws SiteFormatException
     {
         File folder = new File(path);
         if(!folder.isDirectory())throw new SiteFormatException("The file is not a folder");
@@ -64,8 +64,11 @@ public class DirectoryMd {
     protected void parcours(File content, String path){
         if(content == null)
             return;
+        File[] contentFiles = content.listFiles();
+        if(contentFiles==null)
+            return;
 
-        for(File file : content.listFiles()) {
+        for(File file : contentFiles) {
             if(file == null)
                 continue;
 

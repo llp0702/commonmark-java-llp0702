@@ -13,6 +13,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DirectoryHtml {
 
@@ -32,10 +34,8 @@ public class DirectoryHtml {
         files = new HashMap<>();
         for(String path : htmlFiles)
         {
-            String name = nameHtml(path);
-            files.put(path, name);
+            files.put(path, nameHtml(path));
         }
-
         this.staticFiles = staticFiles;
     }
 
@@ -53,7 +53,7 @@ public class DirectoryHtml {
     //create path\dir\...
     public void save(String path, String dir) throws IOException
     {
-        Path output_folder = Paths.get(path,dir);
+        Path output_folder = Paths.get(path, dir);
         File tmp = new File(output_folder.toString());
         if(tmp.exists())
             Files.walkFileTree(output_folder,
@@ -78,9 +78,9 @@ public class DirectoryHtml {
                         }
                     }
             );
-
-        tmp.mkdirs();
-
+        if(!tmp.mkdirs()){
+            Logger.getAnonymousLogger().log(Level.INFO,"No dir was created");
+        }
 
         for(Map.Entry<String, String> entry : this.files.entrySet())
         {
