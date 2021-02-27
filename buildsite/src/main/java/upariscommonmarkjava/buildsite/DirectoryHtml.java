@@ -10,54 +10,38 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DirectoryHtml {
 
     protected HashMap<String,String> files;
-    protected ItoMLFile toml_options;
-    protected ArrayList<String> staticFiles;
-
-    public static DirectoryHtml create(ItoMLFile toml_options,ArrayList<String> htmlFiles, ArrayList<String> staticFiles)
+    protected ItoMLFile tomlOptions;
+    protected List<String> staticFiles;
+    private final String inputPath;
+    public static DirectoryHtml create(String input_path, ItoMLFile toml_options, List<String> htmlFiles, List<String> staticFiles)
     {
-        return new DirectoryHtml(toml_options,htmlFiles,staticFiles);
+        return new DirectoryHtml(input_path,toml_options,htmlFiles,staticFiles);
     }
 
-    protected DirectoryHtml(ItoMLFile toml_options,ArrayList<String> htmlFiles, ArrayList<String> staticFiles)
+    protected DirectoryHtml(String inputPath, ItoMLFile tomlOptions, List<String> htmlFiles, List<String> staticFiles)
     {
-        this.toml_options = toml_options;
-        files = new HashMap();
+        this.inputPath = inputPath;
+        this.tomlOptions = tomlOptions;
+        files = new HashMap<>();
         for(String path : htmlFiles)
         {
-            String name = name_html(path);
-            files.put(path, name);
+            files.put(path, nameHtml(path));
         }
-
         this.staticFiles = staticFiles;
     }
 
-    private String name_html(String path_md)
+    private String nameHtml(String path_md)
     {
-        return new File(path_md.substring(0, path_md.length() - 2) + "html").getName();
-    }
-
-    public boolean isSimilare(DirectoryMd d)
-    {
-
-        if(d.getPaths().size() != this.files.size())
-            return false;
-
-        for(String path_md : d.getPaths()) {
-            if (!this.files.containsKey(path_md))
-                return false;
-        }
-        return true;
-    }
-
-    public boolean isSimilare(File folder)
-    {
-        return false;
+        return (path_md.substring(0, path_md.length() - 2) + "html");
     }
 
     //create path\_output\...
@@ -69,55 +53,56 @@ public class DirectoryHtml {
     //create path\dir\...
     public void save(String path, String dir) throws IOException
     {
-        for(String path_md : this.files.keySet())
+        Path output_folder = Paths.get(path, dir);
+        File tmp = new File(output_folder.toString());
+        if(tmp.exists())
+            Files.walkFileTree(output_folder,
+                    new SimpleFileVisitor<>() {
+
+                        // delete directories or folders
+                        @Override
+                        public FileVisitResult postVisitDirectory(Path dir,
+                                                                  IOException exc)
+                                throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        // delete files
+                        @Override
+                        public FileVisitResult visitFile(Path file,
+                                                         BasicFileAttributes attrs)
+                                throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    }
+            );
+        if(!tmp.mkdirs()){
+            Logger.getAnonymousLogger().log(Level.INFO,"No dir was created");
+        }
+
+        for(Map.Entry<String, String> entry : this.files.entrySet())
         {
+            final String path_md = entry.getKey();
             String name_html = files.get(path_md);
 
-            Path inputPath = Paths.get(path_md);
-            Path output_folder = Paths.get(path,dir);
+            Path currentInputPath = Paths.get(this.inputPath,path_md);
 
             Path outputPath = Paths.get(output_folder.toString(), name_html);
-            ICMFile cmFile = CMFile.fromPath(inputPath);
+            Files.createDirectories(outputPath.getParent());
+
+            ICMFile cmFile = CMFile.fromPath(currentInputPath);
             IConverterMd2Html converterMd2Html = new ConverterMd2Html();
-
-            File tmp = new File(output_folder.toString());
-
-            if(tmp.exists())
-                Files.walkFileTree(output_folder,
-                        new SimpleFileVisitor<>() {
-
-                            // delete directories or folders
-                            @Override
-                            public FileVisitResult postVisitDirectory(Path dir,
-                                                                      IOException exc)
-                                    throws IOException {
-                                Files.delete(dir);
-                                System.out.printf("Directory is deleted : %s%n", dir);
-                                return FileVisitResult.CONTINUE;
-                            }
-
-                            // delete files
-                            @Override
-                            public FileVisitResult visitFile(Path file,
-                                                             BasicFileAttributes attrs)
-                                    throws IOException {
-                                Files.delete(file);
-                                System.out.printf("File is deleted : %s%n", file);
-                                return FileVisitResult.CONTINUE;
-                            }
-                        }
-                );
-
-
-
-            System.out.println("TEST : " + tmp.exists());
-            tmp.mkdirs();
 
             converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         }
 
         for(String static_path : this.staticFiles) {
-            Files.copy(Paths.get(static_path), Paths.get(path, dir, new File(static_path).getName()));
+            Path input = Paths.get(inputPath,static_path);
+            Path output =  Paths.get(path, dir, static_path);
+            Files.createDirectories(output);
+            Files.copy(input,output,StandardCopyOption.REPLACE_EXISTING);
         }
     }
 }

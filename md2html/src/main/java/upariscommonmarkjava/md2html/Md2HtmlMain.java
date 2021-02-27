@@ -27,23 +27,20 @@ public class Md2HtmlMain {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "ssg build [filename] [Options]", options );
             }else{
-                //Cas ou on utilise filename et non pas buildsite
-                if(!line.hasOption("i")){
-                    if(line.getArgs().length==0){
-                        throw new ParseException("Unspecified input file");
-                    }
-                    String fileInputPath = line.getArgs()[0];
-
-                    String outputDir = OUTPUT_DIR;
-                    if( line.hasOption( "o" ) ) {
-                        outputDir = line.getOptionValue("o");
-                        if(!outputDir.endsWith("/"))outputDir += "/";
-                    }
-
-                    workMd2Html(fileInputPath, outputDir);
-                }else{
-                    //Cas ou on utilise buildsite
+                if(line.getArgs().length==0){
+                    throw new ParseException("Unspecified input file");
                 }
+                String fileInputPath = line.getArgs()[0];
+
+                String outputDir = OUTPUT_DIR;
+                if( line.hasOption( "o" ) ) {
+                    outputDir = line.getOptionValue("o");
+                    if(!outputDir.endsWith("/"))outputDir += "/";
+                }
+
+                workMd2Html(fileInputPath, outputDir);
+
+                //Cas ou on utilise filename et non pas buildsite
             }
         }
         catch(ParseException | IOException exp ) {
@@ -61,11 +58,6 @@ public class Md2HtmlMain {
         options.addOption( Option.builder("o").longOpt("output-dir").numberOfArgs(1).argName("DIR")
                 .desc("Les fichiers sont produits dans le répertoire _output/ par défaut, ou dans le répertoire DIR ")
                 .build() );
-        options.addOption(Option.builder("i").longOpt("input-dir").numberOfArgs(1).argName("DIR")
-                .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. La présence des fichiers " +
-                        "DIR/site.toml et DIR/content/index.md est nécessaire. Si cette option est utilisée, la présence" +
-                        "de l'argument filename devient insensée")
-                .build());
         return options;
     }
 
