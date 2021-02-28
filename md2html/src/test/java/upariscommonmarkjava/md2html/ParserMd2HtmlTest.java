@@ -32,7 +32,7 @@ class ParserMd2HtmlTest {
         ConverterMd2Html converter = new ConverterMd2Html();
 
         //When
-        String result = converter.parseAndConvert2Html(cmFile);
+        String result = converter.parseAndConvert2Html(cmFile,null, null);
 
         //Then
         InputStream inputStreamResult = new ReaderInputStream(new StringReader(result));
@@ -50,7 +50,7 @@ class ParserMd2HtmlTest {
 
 
         //When
-        converter.parseAndConvert2HtmlAndSave(cmFile, destPath);
+        converter.parseAndConvert2HtmlAndSave(cmFile, null, destPath, null);
 
         //Then
         assertTrue(Files.exists(destPath));

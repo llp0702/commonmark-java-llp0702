@@ -1,10 +1,11 @@
 package upariscommonmarkjava.buildsite;
 
 import upariscommonmarkjava.md2html.implementations.TomlFile;
-import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +15,8 @@ import java.util.Optional;
 public class DirectoryMd {
     protected final ArrayList<String> pathsMd;
     protected final ArrayList<String> pathsOther;
-    protected final ItoMLFile tomlOptions;
+    protected final ArrayList<Path> pathsTemplates;
+    protected final ITOMLFile tomlOptions;
     private final String inputPath;
 
 
@@ -40,21 +42,22 @@ public class DirectoryMd {
         if(contentFiles==null)throw new SiteFormatException("Content is empty");
         Optional<File> optIndex = Arrays.stream(contentFiles)
                 .filter(x -> x.getName().equals("index.md")).findAny();
+        if (optIndex.isEmpty())throw new SiteFormatException("No index.md found ! ");
 
-        if (optIndex.isEmpty())throw new SiteFormatException("No index.md founded ! ");
+        Optional<File> optTemplatesDir = Arrays.stream(files)
+                .filter(x->"templates".equals(x.getName())).findAny();
 
         try
         {
-            return new DirectoryMd(optToml.get(), content);
+            return new DirectoryMd(optToml.get(), content, optTemplatesDir.orElse(null));
         }
         catch (IOException ioe)
         {
             throw new SiteFormatException("Error IOException : " + ioe.getMessage());
         }
-
     }
 
-    private ItoMLFile initOption(File toml) throws IOException
+    private ITOMLFile initOption(File toml) throws IOException
     {
         TomlFile it = TomlFile.fromPath(Paths.get(toml.getAbsolutePath()));
         it.parse();
@@ -87,23 +90,42 @@ public class DirectoryMd {
         }
     }
 
-    protected DirectoryMd(File toml, File content) throws IOException
+    protected void parcoursTemplates(File templates, String path){
+        if(templates == null) return;
+
+        File[] contentFiles = templates.listFiles();
+        if(contentFiles==null) return;
+
+        for(File file : contentFiles) {
+            if(file == null) continue;
+
+            if(file.isDirectory()) {
+                parcours(file, path + "/" + file.getName());
+            }else{
+                pathsTemplates.add(Paths.get(inputPath, path , file.getName()));
+            }
+        }
+    }
+
+    protected DirectoryMd(File toml, File content, File templates) throws IOException
     {
         this.inputPath = content.getAbsolutePath();
         this.tomlOptions = initOption(toml);
         pathsMd = new ArrayList<>();
         pathsOther = new ArrayList<>();
+        pathsTemplates = new ArrayList<>();
 
         parcours(content,"");
+        parcoursTemplates(templates, "");
     }
 
-    public List<String> getPaths()
+    public List<String> getPathsMd()
     {
         return this.pathsMd;
     }
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther);
+        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther, this.pathsTemplates);
     }
 }
