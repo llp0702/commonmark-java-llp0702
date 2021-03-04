@@ -49,4 +49,4 @@ release:
  when: on_success
  only:
   - tags
- script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "$CI_JOB_ID" --ref "$CI_COMMIT_SHA" 
+ script: release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA" 
