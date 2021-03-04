@@ -48,4 +48,4 @@ release:
  when: manual
  except:
    -tags
-script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TIMESTAMP" --ref "$CI_COMMIT_SHA" 
+ script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TIMESTAMP" --ref "$CI_COMMIT_SHA" 
