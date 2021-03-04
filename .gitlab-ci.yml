@@ -5,7 +5,9 @@ image: gradle:6.8.2-jdk15
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-
+stages:
+  -build
+  -release
 cache:
   paths:
     - .m2/repository
@@ -39,3 +41,11 @@ code-coverage-buildsite 2/3:
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
+
+release:
+ stage: release
+ image: alpine:latest
+ when: manual
+ except:
+   -tags
+script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TIMESTAMP" --ref "$CI_COMMIT_SHA" 
