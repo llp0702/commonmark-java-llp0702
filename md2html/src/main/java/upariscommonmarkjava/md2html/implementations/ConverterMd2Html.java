@@ -86,7 +86,8 @@ public class ConverterMd2Html implements IConverterMd2Html {
             }else{
                 IHtmlTemplate htmlTemplate = HtmlTemplate.builder().md2HtmlContent(htmlContent)
                         .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
-                        .templateContent(Files.readString(template)).build();
+                        .templateContent(Files.readString(template))
+                        .templates(templateFiles).build();
                 return htmlTemplate.apply();
             }
         }

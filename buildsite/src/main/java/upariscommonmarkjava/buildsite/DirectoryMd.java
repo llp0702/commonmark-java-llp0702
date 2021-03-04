@@ -18,6 +18,7 @@ public class DirectoryMd {
     protected final ArrayList<Path> pathsTemplates;
     protected final ITOMLFile tomlOptions;
     private final String inputPath;
+    private final String pathsParentTemplate;
 
 
     public static DirectoryMd open(final String path) throws SiteFormatException
@@ -102,7 +103,7 @@ public class DirectoryMd {
             if(file.isDirectory()) {
                 parcours(file, path + "/" + file.getName());
             }else{
-                pathsTemplates.add(Paths.get(inputPath, path , file.getName()));
+                pathsTemplates.add(Paths.get(pathsParentTemplate, path , file.getName()));
             }
         }
     }
@@ -110,6 +111,7 @@ public class DirectoryMd {
     protected DirectoryMd(File toml, File content, File templates) throws IOException
     {
         this.inputPath = content.getAbsolutePath();
+        this.pathsParentTemplate = templates.getAbsolutePath();
         this.tomlOptions = initOption(toml);
         pathsMd = new ArrayList<>();
         pathsOther = new ArrayList<>();
