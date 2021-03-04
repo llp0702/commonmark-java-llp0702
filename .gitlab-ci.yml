@@ -46,7 +46,7 @@ code-coverage-buildsite 2/3:
 release:
  stage: release
  image: registry.gitlab.com/gitlab-org/release-cli
- when: manual
+ when: on_success
  except:
   - tags
- script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TIMESTAMP" --ref "$CI_COMMIT_SHA" 
+ script: release-cli create --name "$CI_COMMIT_TIMESTAMP" --description "$CI_COMMIT_TITLE" --tag-name "v1.0.0" --ref "$CI_COMMIT_SHA" 
