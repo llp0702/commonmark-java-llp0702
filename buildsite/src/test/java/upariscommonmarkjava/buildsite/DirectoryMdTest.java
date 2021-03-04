@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,7 +31,7 @@ class DirectoryMdTest {
         SiteFormatException e = assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open("src/test/resources/no_index"));
 
-        assertEquals("No index.md founded ! ", e.getMessage());
+        assertEquals("No index.md found ! ", e.getMessage());
     }
 
     @Test
@@ -39,7 +40,7 @@ class DirectoryMdTest {
         SiteFormatException e = assertThrows(SiteFormatException.class,
                 () -> DirectoryMd.open("src/test/resources/no_toml"));
 
-        assertEquals("No Site.Toml founded ! ", e.getMessage());
+        assertEquals("No Site.Toml found ! ", e.getMessage());
     }
 
     @Test

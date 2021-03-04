@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
 
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import java.io.IOException;
 import java.util.logging.Logger;
 
