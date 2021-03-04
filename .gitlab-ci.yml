@@ -6,8 +6,8 @@ image: gradle:6.8.2-jdk15
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 stages:
-  -build
-  -release
+  - build
+  - release
 cache:
   paths:
     - .m2/repository
