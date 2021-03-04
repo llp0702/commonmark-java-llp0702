@@ -33,8 +33,9 @@ public class BuildSiteMain {
                 if(line.hasOption("o")) {
                     directoryHtml.save(current_directory, line.getOptionValue("o"));
                 }
-                else
+                else{
                     directoryHtml.save(current_directory);
+                }
             }
         }
         catch(ParseException | SiteFormatException | IOException exp ) {
