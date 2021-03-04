@@ -2,15 +2,25 @@ package upariscommonmarkjava.buildsite;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.io.IOException;
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DirectoryHtmlTest {
+class DirectoryHtmlTest {
     DirectoryMd correct_site;
     DirectoryHtml correct_html;
+
+    public static boolean isSimilare(DirectoryHtml dh,DirectoryMd d)
+    {
+        if(d.getPathsMd().size() != dh.files.size())
+            return false;
+
+        for(String path_md : d.getPathsMd()) {
+            if (!dh.files.containsKey(path_md))
+                return false;
+        }
+        return true;
+    }
 
     @BeforeEach
     public void initCorrectSite()
@@ -27,27 +37,22 @@ public class DirectoryHtmlTest {
     }
 
     @Test
-    public void testIsSimilare()
+    void testIsSimilare()
     {
-        assertTrue(correct_html.isSimilare(correct_site));
+        assertTrue(isSimilare(correct_html,correct_site));
+    }
 
-        final File folder = new File("");
 
-        assertTrue(correct_html.isSimilare(folder));
+
+    @Test
+    void testSave()
+    {
+        assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
     }
 
     @Test
-    public void testSave()
+    void testCreate()
     {
-        assertDoesNotThrow(() ->  correct_html.save(""));
-        assertThrows(IOException.class, () ->  correct_html.save(""));
-
-        //TODO
-    }
-
-    @Test
-    public void testCreate()
-    {
-        assertTrue(correct_html.isSimilare(correct_site));
+        assertTrue(isSimilare(correct_html,correct_site));
     }
 }

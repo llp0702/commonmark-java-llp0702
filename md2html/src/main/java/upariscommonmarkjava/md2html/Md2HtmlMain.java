@@ -25,13 +25,11 @@ public class Md2HtmlMain {
             CommandLine line = parser.parse( options, args );
             if( line.hasOption("h")){
                 HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "ssg build <filename> [Options]", options );
+                formatter.printHelp( "ssg build [filename] [Options]", options );
             }else{
-
                 if(line.getArgs().length==0){
                     throw new ParseException("Unspecified input file");
                 }
-
                 String fileInputPath = line.getArgs()[0];
 
                 String outputDir = OUTPUT_DIR;
@@ -40,7 +38,9 @@ public class Md2HtmlMain {
                     if(!outputDir.endsWith("/"))outputDir += "/";
                 }
 
-                work(fileInputPath, outputDir);
+                workMd2Html(fileInputPath, outputDir);
+
+                //Cas ou on utilise filename et non pas buildsite
             }
         }
         catch(ParseException | IOException exp ) {
@@ -61,13 +61,13 @@ public class Md2HtmlMain {
         return options;
     }
 
-    public static void work(final String filePath, final String outputDir) throws IOException {
+    public static void workMd2Html(final String filePath, final String outputDir) throws IOException {
         Path inputPath = Paths.get(filePath);
         String filenameInput = inputPath.getFileName().toString();
         String filenameOutput = filenameInput.substring(0, filenameInput.lastIndexOf('.'))+".html";
         Path outputPath = Paths.get(outputDir+filenameOutput);
         ICMFile cmFile = CMFile.fromPath(inputPath);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html();
-        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
+        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, null,outputPath, null);
     }
 }

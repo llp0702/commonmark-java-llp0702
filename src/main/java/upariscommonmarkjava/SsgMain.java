@@ -1,6 +1,7 @@
 package upariscommonmarkjava;
 
 import org.apache.commons.cli.*;
+import upariscommonmarkjava.buildsite.BuildSiteMain;
 import upariscommonmarkjava.md2html.Md2HtmlMain;
 
 import java.util.Arrays;
@@ -8,7 +9,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class SsgMain {
-    public final static List<String> commands = List.of("build", "help");
+    public static final String BUILD = "build";
+    public static final List<String> commands = List.of(BUILD, "help");
     static Logger logger;
     public static void main(String[] args) {
         logger = Logger.getAnonymousLogger();
@@ -19,8 +21,8 @@ public class SsgMain {
         try {
             CommandLine line = parser.parse( options, args, true );
             if(line.hasOption("h")){
-                if(line.getArgs().length>0 && commands.contains(line.getArgs()[0])){
-                    work(line.getArgs()[0], options, Arrays.copyOfRange(args, 1, args.length));
+                if(line.getArgs().length>0 && BUILD.equals(line.getArgs()[0])){
+                    BuildSiteMain.help();
                 }else{
                     help(options);
                 }
@@ -28,15 +30,8 @@ public class SsgMain {
                 if(line.getArgs().length==0){
                     throw new ParseException("Unspecified ssg command");
                 }
-                String command=line.getArgs()[0];
-                String[] argsWithoutCommand = new String[args.length-1];
-                int j=0;
-                for (int i = 0; i < args.length; i++) {
-                    if(!args[i].equals(command)){
-                        argsWithoutCommand[j++]=args[i];
-                    }
-                }
-                work(command, options, argsWithoutCommand);
+                String[] argsWithoutCommand = getArgsWithoutCommand(args, line);
+                work(line.getArgs()[0], options, argsWithoutCommand);
             }
         }
         catch(ParseException exp ) {
@@ -46,10 +41,21 @@ public class SsgMain {
         }
     }
 
+    private static String[] getArgsWithoutCommand(String[] args, CommandLine line) {
+        String command= line.getArgs()[0];
+        String[] argsWithoutCommand = new String[args.length-1];
+        int j=0;
+        for (String arg : args) {
+            if (arg!=null && !arg.equals(command)) {
+                argsWithoutCommand[j++] = arg;
+            }
+        }
+        return argsWithoutCommand;
+    }
+
     private static void help(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "ssg <build | help> [args] [Options]", options);
-        logger.info("build is for converting md file or website (use ssg build -h for more info)");
+        formatter.printHelp( "ssg <build | help> [args] [Options]\nbuild\tfor converting md file or website (use ssg build -h for more info)\nhelp\tShows this message\n", options);
     }
 
 
@@ -64,8 +70,13 @@ public class SsgMain {
             help(options);
             return;
         }
-        if(command.equals("build")){
-            Md2HtmlMain.main(args);
+
+        if(command.equals(BUILD)){
+            if(Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))){
+                Md2HtmlMain.main(args);
+            }else{
+                BuildSiteMain.main(args);
+            }
         }
 
     }
