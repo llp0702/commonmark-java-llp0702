@@ -66,13 +66,17 @@ public class ConverterMd2Html implements IConverterMd2Html {
         if(templateFiles==null || templateFiles.isEmpty()){
             return wrapHtmlBody(htmlContent);
         }else{
+            return applyTemplateIfPresent(cmFile, globalMetadata, templateFiles, htmlContent);
+        }
+    }
 
-            List<TomlParseResult> metaDataLocal = cmFile.getTomlMetadataLocal();
-            Path template = templateFiles.stream()
-                    .filter(x->"default.html".equals(x.getFileName().toString()))
-                    .findAny().orElse(null);
-            for(TomlParseResult metaData:metaDataLocal){
-                if(metaData==null)continue;
+    private String applyTemplateIfPresent(ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
+        List<TomlParseResult> metaDataLocal = cmFile.getTomlMetadataLocal();
+        Path template = templateFiles.stream()
+                .filter(x->"default.html".equals(x.getFileName().toString()))
+                .findAny().orElse(null);
+        for(TomlParseResult metaData:metaDataLocal){
+            if(metaData!=null){
                 String curRes = metaData.getString("template");
                 if(curRes != null && !curRes.isEmpty() && !curRes.isBlank() ){
                     template = templateFiles.stream().filter(x->x.normalize().toString().endsWith(curRes))
@@ -80,16 +84,16 @@ public class ConverterMd2Html implements IConverterMd2Html {
                     if(template!=null)break;
                 }
             }
-            if(template==null){
-                htmlContent=wrapHtmlBody(htmlContent);
-                return htmlContent;
-            }else{
-                IHtmlTemplate htmlTemplate = HtmlTemplate.builder().md2HtmlContent(htmlContent)
-                        .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
-                        .templateContent(Files.readString(template))
-                        .templates(templateFiles).build();
-                return htmlTemplate.apply();
-            }
+        }
+        if(template==null){
+            htmlContent =wrapHtmlBody(htmlContent);
+            return htmlContent;
+        }else{
+            IHtmlTemplate htmlTemplate = HtmlTemplate.builder().md2HtmlContent(htmlContent)
+                    .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
+                    .templateContent(Files.readString(template))
+                    .templates(templateFiles).build();
+            return htmlTemplate.apply();
         }
     }
 }

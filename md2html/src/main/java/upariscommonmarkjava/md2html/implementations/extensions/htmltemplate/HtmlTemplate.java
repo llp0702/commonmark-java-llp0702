@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 @Builder
 public class HtmlTemplate implements IHtmlTemplate {
-    public static Logger logger = Logger.getLogger("Html Template logger");
+    public static final Logger logger = Logger.getLogger("Html Template logger");
 
     String md2HtmlContent;
     ITOMLFile metadataGlobal;
@@ -105,9 +105,7 @@ public class HtmlTemplate implements IHtmlTemplate {
                 }else{
                     String[] splittedSpace = currentMatch.split("[ ]+");
                     if(splittedDot.length>1 && "include".equals(splittedSpace[0])){
-                        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replaceAll("\"","");
-                        System.out.println(toIncludeName);
-                        this.templates.stream().forEach(x-> System.out.println(x));
+                        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
                         Path toInclude = this.templates.stream().filter(x->toIncludeName.equals(x.getFileName().toString()))
                                 .findAny().orElse(null);
                         if(toInclude==null){
