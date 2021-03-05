@@ -46,12 +46,13 @@ public class ConverterMd2Html implements IConverterMd2Html {
     public void parseAndConvert2HtmlAndSave(ICMFile cmFile, ITOMLFile globalMetadata, Path destination,
                                             List<Path> templatesFiles) throws IOException {
         String resString = parseAndConvert2Html(cmFile, globalMetadata, templatesFiles);
+        if(!resString.isEmpty()){
+            Files.createDirectories(destination.getParent());
 
-        Files.createDirectories(destination.getParent());
-
-        Files.writeString(destination, resString, StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.CREATE);
+            Files.writeString(destination, resString, StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.CREATE);
+        }
     }
 
     private String wrapHtmlBody(String body){
@@ -62,6 +63,9 @@ public class ConverterMd2Html implements IConverterMd2Html {
         TomlVisitor t = new TomlVisitor();
         resNode.accept(t);
         cmFile.setTomlMetadataLocal(t.getData());
+
+        if(cmFile.isDraft())return "";
+
         String htmlContent = htmlRenderer.render(resNode);
         if(templateFiles==null || templateFiles.isEmpty()){
             return wrapHtmlBody(htmlContent);

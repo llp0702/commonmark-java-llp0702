@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface ICMFile extends IFile{
     void setTomlMetadataLocal(List<TomlParseResult> parseResult);
+    boolean isDraft();
     List<TomlParseResult> getTomlMetadataLocal();
 }

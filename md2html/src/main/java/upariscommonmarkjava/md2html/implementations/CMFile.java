@@ -35,4 +35,16 @@ public class CMFile implements ICMFile {
         return reader;
     }
 
+    @Override
+    public boolean isDraft() {
+        for(TomlParseResult metadataSet:tomlMetadataLocal){
+            if(metadataSet==null)continue;
+            Boolean isDraft = metadataSet.getBoolean("draft");
+            if(isDraft != null && isDraft ){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
