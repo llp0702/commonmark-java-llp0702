@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
 
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -33,8 +34,9 @@ public class BuildSiteMain {
                 if(line.hasOption("o")) {
                     directoryHtml.save(current_directory, line.getOptionValue("o"));
                 }
-                else
+                else{
                     directoryHtml.save(current_directory);
+                }
             }
         }
         catch(ParseException | SiteFormatException | IOException exp ) {

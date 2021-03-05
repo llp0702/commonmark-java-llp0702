@@ -2,23 +2,20 @@ package upariscommonmarkjava.buildsite;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.InvalidPathException;
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DirectoryHtmlTest {
+public class DirectoryHtmlTest {
     DirectoryMd correct_site;
     DirectoryHtml correct_html;
 
     public static boolean isSimilare(DirectoryHtml dh,DirectoryMd d)
     {
-        if(d.getPaths().size() != dh.files.size())
+        if(d.getPathsMd().size() != dh.files.size())
             return false;
 
-        for(String path_md : d.getPaths()) {
+        for(String path_md : d.getPathsMd()) {
             if (!dh.files.containsKey(path_md))
                 return false;
         }
@@ -44,7 +41,6 @@ class DirectoryHtmlTest {
     {
         assertTrue(isSimilare(correct_html,correct_site));
     }
-
 
 
     @Test

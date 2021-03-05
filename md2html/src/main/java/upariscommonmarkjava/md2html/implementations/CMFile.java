@@ -1,6 +1,8 @@
 package upariscommonmarkjava.md2html.implementations;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.tomlj.TomlParseResult;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
@@ -10,7 +12,6 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 @Builder
 public class CMFile implements ICMFile {
@@ -25,9 +26,9 @@ public class CMFile implements ICMFile {
 
     Reader reader;
 
-    Map<String, List<String>> metadata;
 
-    TomlParseResult tomlParseResult;
+    @Getter @Setter
+    List<TomlParseResult> tomlMetadataLocal;
 
     @Override
     public Reader getReader(){
@@ -35,8 +36,15 @@ public class CMFile implements ICMFile {
     }
 
     @Override
-    public void setTomlMetadata(TomlParseResult parseResult) {
-        this.tomlParseResult = parseResult;
+    public boolean isDraft() {
+        for(TomlParseResult metadataSet:tomlMetadataLocal){
+            if(metadataSet==null)continue;
+            Boolean isDraft = metadataSet.getBoolean("draft");
+            if(isDraft != null && isDraft ){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

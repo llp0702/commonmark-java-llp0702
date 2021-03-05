@@ -4,7 +4,7 @@ import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
-import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,15 +19,18 @@ import java.util.logging.Logger;
 public class DirectoryHtml {
 
     protected HashMap<String,String> files;
-    protected ItoMLFile tomlOptions;
+    protected ITOMLFile tomlOptions;
     protected List<String> staticFiles;
+    protected List<Path> templatesFiles;
     private final String inputPath;
-    public static DirectoryHtml create(String input_path, ItoMLFile toml_options, List<String> htmlFiles, List<String> staticFiles)
+    public static DirectoryHtml create(String input_path, ITOMLFile toml_options, List<String> htmlFiles,
+                                       List<String> staticFiles, List<Path> templatesFiles)
     {
-        return new DirectoryHtml(input_path,toml_options,htmlFiles,staticFiles);
+        return new DirectoryHtml(input_path,toml_options,htmlFiles,staticFiles, templatesFiles);
     }
 
-    protected DirectoryHtml(String inputPath, ItoMLFile tomlOptions, List<String> htmlFiles, List<String> staticFiles)
+    protected DirectoryHtml(String inputPath, ITOMLFile tomlOptions, List<String> htmlFiles, List<String> staticFiles,
+                            List<Path> templatesFiles)
     {
         this.inputPath = inputPath;
         this.tomlOptions = tomlOptions;
@@ -37,6 +40,7 @@ public class DirectoryHtml {
             files.put(path, nameHtml(path));
         }
         this.staticFiles = staticFiles;
+        this.templatesFiles = templatesFiles;
     }
 
     private String nameHtml(String path_md)
@@ -95,7 +99,7 @@ public class DirectoryHtml {
             ICMFile cmFile = CMFile.fromPath(currentInputPath);
             IConverterMd2Html converterMd2Html = new ConverterMd2Html();
 
-            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
+            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
         }
 
         for(String static_path : this.staticFiles) {

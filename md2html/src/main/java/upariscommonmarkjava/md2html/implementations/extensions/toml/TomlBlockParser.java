@@ -3,10 +3,11 @@ package upariscommonmarkjava.md2html.implementations.extensions.toml;
 import org.commonmark.internal.DocumentBlockParser;
 import org.commonmark.node.Block;
 import org.commonmark.parser.block.*;
+import upariscommonmarkjava.md2html.interfaces.extensions.toml.ITomlBlockParser;
 
 import java.util.regex.Pattern;
 
-public class TomlBlockParser extends AbstractBlockParser {
+public class TomlBlockParser extends AbstractBlockParser implements ITomlBlockParser {
     private static final Pattern REGEX_BEGIN = Pattern.compile("^\\+{3}(\\s.*)?");
     private static final Pattern REGEX_END = Pattern.compile("^(\\+{3}|\\.{3})(\\s.*)?");
 

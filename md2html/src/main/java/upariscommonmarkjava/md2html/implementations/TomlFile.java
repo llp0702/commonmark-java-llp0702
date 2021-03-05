@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
-import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -13,7 +13,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 @Builder
-public class TomlFile implements ItoMLFile {
+public class TomlFile implements ITOMLFile {
     @Getter
     private Reader reader;
     @Getter

@@ -1,10 +1,13 @@
-package upariscommonmarkjava.buildsite;
+package upariscommonmarkjava.buildsite.directorymd;
 
 import upariscommonmarkjava.md2html.implementations.TomlFile;
-import upariscommonmarkjava.md2html.interfaces.ItoMLFile;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
+import upariscommonmarkjava.buildsite.DirectoryHtml;
+import upariscommonmarkjava.buildsite.SiteFormatException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,8 +17,8 @@ import java.util.Optional;
 public class DirectoryMd {
     protected final ArrayList<String> pathsMd;
     protected final ArrayList<String> pathsOther;
-    protected final ItoMLFile tomlOptions;
-    private final String inputPath;
+    protected final ITOMLFile tomlOptions;
+    protected final String inputPath;
 
 
     public static DirectoryMd open(final String path) throws SiteFormatException
@@ -29,7 +32,7 @@ public class DirectoryMd {
 
         Optional<File> optToml = Arrays.stream(files)
                 .filter(x -> x.getName().equals("site.toml")).findAny();
-        if(optToml.isEmpty())throw new SiteFormatException("No Site.Toml founded ! ");
+        if(optToml.isEmpty())throw new SiteFormatException("No Site.Toml found ! ");
 
         Optional<File> optContent = Arrays.stream(files)
                 .filter(x -> x.getName().equals("content")).findAny();
@@ -40,21 +43,24 @@ public class DirectoryMd {
         if(contentFiles==null)throw new SiteFormatException("Content is empty");
         Optional<File> optIndex = Arrays.stream(contentFiles)
                 .filter(x -> x.getName().equals("index.md")).findAny();
+        if (optIndex.isEmpty())throw new SiteFormatException("No index.md found ! ");
 
-        if (optIndex.isEmpty())throw new SiteFormatException("No index.md founded ! ");
+        Optional<File> optTemplatesDir = Arrays.stream(files)
+                .filter(x->"templates".equals(x.getName())).findAny();
 
         try
         {
-            return new DirectoryMd(optToml.get(), content);
+            return optTemplatesDir.isEmpty() ?
+            new DirectoryMd(optToml.get(), content) :
+            new DirectoryMdWithTemplate(optToml.get(), content, optTemplatesDir.get());
         }
         catch (IOException ioe)
         {
             throw new SiteFormatException("Error IOException : " + ioe.getMessage());
         }
-
     }
 
-    private ItoMLFile initOption(File toml) throws IOException
+    private ITOMLFile initOption(File toml) throws IOException
     {
         TomlFile it = TomlFile.fromPath(Paths.get(toml.getAbsolutePath()));
         it.parse();
@@ -93,17 +99,17 @@ public class DirectoryMd {
         this.tomlOptions = initOption(toml);
         pathsMd = new ArrayList<>();
         pathsOther = new ArrayList<>();
-
         parcours(content,"");
     }
 
-    public List<String> getPaths()
+
+    public List<String> getPathsMd()
     {
         return this.pathsMd;
     }
 
     public DirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther);
+        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther, new ArrayList<>());
     }
 }

@@ -5,19 +5,22 @@ import org.commonmark.node.CustomNode;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TomlVisitor extends AbstractVisitor {
-    private TomlParseResult data;
+    private List<TomlParseResult> data=new ArrayList<>();
 
     @Override
     public void visit(CustomNode customNode) {
         if (customNode instanceof TomlNode) {
-            data = Toml.parse(((TomlNode)customNode).getRawContent());
+            data.add(Toml.parse(((TomlNode)customNode).getRawContent()));
         } else {
             super.visit(customNode);
         }
     }
 
-    public TomlParseResult getData() {
+    public List<TomlParseResult> getData() {
         return data;
     }
 }
