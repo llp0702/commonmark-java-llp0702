@@ -5,9 +5,12 @@ image: gradle:6.8.2-jdk15
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/test/1.0.0"
+
 stages:
   - build
   - test
+  - upload
   - release
 cache:
   paths:
@@ -17,6 +20,8 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 build-and-deploy:
+  only:
+    - tags
   stage: build
   script: gradle build codeCoverageReport
   artifacts:
@@ -27,6 +32,7 @@ build-and-deploy:
       - "*/build/reports/"
       - build/libs/ssg-*.jar
       - build/scripts/ssg
+      - "build/distributions/*"
     expire_in: 1 week
   cache:
     key: "$CI_COMMIT_REF_NAME"
@@ -34,19 +40,35 @@ build-and-deploy:
       - .gradle
 
 code-coverage-md2html 1/3:
+  only:
+    - tags
   stage: test
   image: alpine:latest
   script: cat md2html/build/reports/jacoco/test/html/index.html
 
 code-coverage-buildsite 2/3:
+  only:
+    - tags
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
 
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/distributions/ssg-1.0-SNAPSHOT.zip ${PACKAGE_REGISTRY_URL}/ssg-1.0-SNAPSHOT.zip
+
 release:
- stage: release
- image: registry.gitlab.com/gitlab-org/release-cli
- when: on_success
- only:
-  - tags
- script: release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA" 
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli
+  when: on_success
+  only:
+    - tags
+  script:
+    - cp -r build/distributions bin/
+    - release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA" \
+      --assets-link "{\"name\":\"bin\",\"url\":\"${PACKAGE_REGISTRY_URL}"

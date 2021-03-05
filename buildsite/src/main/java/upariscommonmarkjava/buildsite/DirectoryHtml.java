@@ -9,14 +9,14 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DirectoryHtml {
+    public static final Logger logger = Logger.getLogger("Directory html logger");
 
     protected HashMap<String,String> files;
     protected ITOMLFile tomlOptions;
@@ -57,9 +57,13 @@ public class DirectoryHtml {
     //create path\dir\...
     public void save(String path, String dir) throws IOException
     {
-        Path output_folder = Paths.get(path, dir);
+        Path output_folder =Paths.get(dir);
+        if(!output_folder.isAbsolute()){
+            output_folder = Paths.get(path, dir);
+        }
         File tmp = new File(output_folder.toString());
-        if(tmp.exists())
+        /*
+        if(tmp.exists()){
             Files.walkFileTree(output_folder,
                     new SimpleFileVisitor<>() {
 
@@ -82,8 +86,15 @@ public class DirectoryHtml {
                         }
                     }
             );
+
+        }*/
         if(!tmp.mkdirs()){
-            Logger.getAnonymousLogger().log(Level.INFO,"No dir was created");
+            logger.log(Level.INFO,"No dir was created");
+        }
+        final File[] tmpFiles = tmp.listFiles();
+        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
+            logger.warning(tmp.getName() + " is already existing, please choose another output");
+            return;
         }
 
         for(Map.Entry<String, String> entry : this.files.entrySet())
@@ -108,5 +119,44 @@ public class DirectoryHtml {
             Files.createDirectories(output);
             Files.copy(input,output,StandardCopyOption.REPLACE_EXISTING);
         }
+
+        //case of href and templates
+        for(Map.Entry<String, String> entry : this.files.entrySet())
+        {
+            final String path_md = entry.getKey();
+            String name_html = files.get(path_md);
+            Path htmlPath = Paths.get(output_folder.toString(), name_html);
+            List<String> hrefs = getHrefs(htmlPath);
+            for(String href:hrefs){
+               Path hrefShouldBe = Paths.get(output_folder.toString(), href);
+               if(!Files.exists(hrefShouldBe) ){
+                   //In this case we search it in templates folder
+                   Path hrefRecuperationFrom = templatesFiles.stream()
+                           .filter(x->x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
+                           .findAny()
+                           .orElse(null);
+                   if(hrefRecuperationFrom!=null){
+                       Files.createDirectories(hrefShouldBe);
+                       Files.copy(hrefRecuperationFrom,hrefShouldBe,StandardCopyOption.REPLACE_EXISTING);
+                   }
+               }
+            }
+        }
+    }
+
+    private List<String> getHrefs(Path htmlPath){
+        if(!Files.exists(htmlPath) || !Files.isRegularFile(htmlPath))return Collections.emptyList();
+        String htmlContent="";
+        try {
+            htmlContent = Files.readString(htmlPath);
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<>();
+        Matcher matcher  = Pattern.compile("href[ ]*=[ ]*['\"](.*?)['\"]").matcher(htmlContent);
+        while (matcher.find()){
+            result.add(matcher.group(1));
+        }
+        return result;
     }
 }

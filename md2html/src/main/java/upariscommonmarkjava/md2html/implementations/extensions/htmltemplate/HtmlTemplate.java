@@ -91,33 +91,16 @@ public class HtmlTemplate implements IHtmlTemplate {
         while (matcher.find()){
             String currentMatch = matcher.group(1).trim();
             //Process current match then append it
-            if("content".equals(currentMatch)){
+            if("content".equalsIgnoreCase(currentMatch.trim())){
                 currentMatch = md2HtmlContent;
             }else{
                 String[] splittedDot = currentMatch.split("[ ]*\\.[ ]*");
-                if(splittedDot.length>=1 && "metadata".equals(splittedDot[0])){
-                    if(splittedDot.length==1){
-                        currentMatch = allMetadataToHtml();
-                    }else{
-                        String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
-                        currentMatch = metadataToHtml(getMetadata(metadataSelected));
-                    }
+                if(splittedDot.length>=1 && "metadata".equalsIgnoreCase(splittedDot[0].trim())){
+                    currentMatch = metadataCase(splittedDot);
                 }else{
                     String[] splittedSpace = currentMatch.split("[ ]+");
-                    if(splittedDot.length>1 && "include".equals(splittedSpace[0])){
-                        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
-                        Path toInclude = this.templates.stream().filter(x->toIncludeName.equals(x.getFileName().toString()))
-                                .findAny().orElse(null);
-                        if(toInclude==null){
-                            currentMatch = "";
-                        }else{
-                            currentMatch = HtmlTemplate.builder()
-                                    .md2HtmlContent(this.md2HtmlContent)
-                                    .metadataGlobal(this.metadataGlobal)
-                                    .tomlMetadata(this.tomlMetadata)
-                                    .templateContent(Files.readString(toInclude))
-                                    .templates(this.templates).build().apply();
-                        }
+                    if(splittedDot.length>1 && "include".equalsIgnoreCase(splittedSpace[0].trim())){
+                        currentMatch = includeCase(splittedSpace);
                     }
                 }
             }
@@ -127,5 +110,34 @@ public class HtmlTemplate implements IHtmlTemplate {
         matcher.appendTail(result);
         return result.toString();
 
+    }
+
+    private String includeCase(String[] splittedSpace) throws IOException {
+        String currentMatch;
+        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
+        Path toInclude = this.templates.stream().filter(x->toIncludeName.equals(x.getFileName().toString()))
+                .findAny().orElse(null);
+        if(toInclude==null){
+            currentMatch = "";
+        }else{
+            currentMatch = HtmlTemplate.builder()
+                    .md2HtmlContent(this.md2HtmlContent)
+                    .metadataGlobal(this.metadataGlobal)
+                    .tomlMetadata(this.tomlMetadata)
+                    .templateContent(Files.readString(toInclude))
+                    .templates(this.templates).build().apply();
+        }
+        return currentMatch;
+    }
+
+    private String metadataCase(String[] splittedDot) {
+        String currentMatch;
+        if(splittedDot.length==1){
+            currentMatch = allMetadataToHtml();
+        }else{
+            String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
+            currentMatch = metadataToHtml(getMetadata(metadataSelected));
+        }
+        return currentMatch;
     }
 }
