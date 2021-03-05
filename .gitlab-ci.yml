@@ -42,3 +42,11 @@ code-coverage-buildsite 2/3:
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
+
+release:
+ stage: release
+ image: registry.gitlab.com/gitlab-org/release-cli
+ when: on_success
+ only:
+  - tags
+ script: release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA" 
