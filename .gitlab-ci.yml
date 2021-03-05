@@ -18,6 +18,8 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 build-and-deploy:
+  only:
+    - tags
   stage: build
   script: gradle build codeCoverageReport
   artifacts:
@@ -35,11 +37,15 @@ build-and-deploy:
       - .gradle
 
 code-coverage-md2html 1/3:
+  only:
+    - tags
   stage: test
   image: alpine:latest
   script: cat md2html/build/reports/jacoco/test/html/index.html
 
 code-coverage-buildsite 2/3:
+  only:
+    - tags
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
@@ -58,4 +64,6 @@ release:
   when: on_success
   only:
     - tags
-  script: release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA"
+  script:
+    - cp build/distributions bin/
+    - release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA"
