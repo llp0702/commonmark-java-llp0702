@@ -30,6 +30,7 @@ build-and-deploy:
       - "*/build/reports/"
       - build/libs/ssg-*.jar
       - build/scripts/ssg
+      - "build/distributions/*"
     expire_in: 1 week
   cache:
     key: "$CI_COMMIT_REF_NAME"
