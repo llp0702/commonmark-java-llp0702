@@ -5,6 +5,8 @@ image: gradle:6.8.2-jdk15
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/bin"
+
 stages:
   - build
   - test
@@ -51,12 +53,14 @@ code-coverage-buildsite 2/3:
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
 
-copyzip:
-  stage: copyzip
-  only:
-    - tags
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
   script:
-    - gradle deploy
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/distributions/ssg-*.zip ${PACKAGE_REGISTRY_URL}/bin
 
 release:
   stage: release
@@ -66,4 +70,5 @@ release:
     - tags
   script:
     - cp -r build/distributions bin/
-    - release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA"
+    - release-cli create --name "$CI_COMMIT_TAG" --description "$CI_COMMIT_TITLE" --tag-name "$CI_COMMIT_TAG" --ref "$CI_COMMIT_SHA" \
+      --assets-link "{\"name\":\"bin\",\"url\":\"${PACKAGE_REGISTRY_URL}"
