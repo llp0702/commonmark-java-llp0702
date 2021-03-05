@@ -8,6 +8,7 @@ variables:
 stages:
   - build
   - test
+  - copyzip
   - release
 cache:
   paths:
@@ -43,8 +44,16 @@ code-coverage-buildsite 2/3:
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
 
+copyzip:
+  stage: copyzip
+  image: registry.gitlab.com/gitlab-org/release-cli
+  only:
+    - tags
+  script:
+    - gradle deploy
+
 release:
- stage: release
+  stage: release
  image: registry.gitlab.com/gitlab-org/release-cli
  when: on_success
  only:

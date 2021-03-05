@@ -9,7 +9,6 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DirectoryHtml {
+    public static final Logger logger = Logger.getLogger("Directory html logger");
 
     protected HashMap<String,String> files;
     protected ITOMLFile tomlOptions;
@@ -57,9 +57,13 @@ public class DirectoryHtml {
     //create path\dir\...
     public void save(String path, String dir) throws IOException
     {
-        Path output_folder = Paths.get(path, dir);
+        Path output_folder =Paths.get(dir);
+        if(!output_folder.isAbsolute()){
+            output_folder = Paths.get(path, dir);
+        }
         File tmp = new File(output_folder.toString());
-        if(tmp.exists())
+        /*
+        if(tmp.exists()){
             Files.walkFileTree(output_folder,
                     new SimpleFileVisitor<>() {
 
@@ -82,8 +86,15 @@ public class DirectoryHtml {
                         }
                     }
             );
+
+        }*/
         if(!tmp.mkdirs()){
-            Logger.getAnonymousLogger().log(Level.INFO,"No dir was created");
+            logger.log(Level.INFO,"No dir was created");
+        }
+        final File[] tmpFiles = tmp.listFiles();
+        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
+            logger.warning(tmp.getName() + " is already existing, please choose another output");
+            return;
         }
 
         for(Map.Entry<String, String> entry : this.files.entrySet())
