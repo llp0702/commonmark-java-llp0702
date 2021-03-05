@@ -46,7 +46,6 @@ code-coverage-buildsite 2/3:
 
 copyzip:
   stage: copyzip
-  image: registry.gitlab.com/gitlab-org/release-cli
   only:
     - tags
   script:
