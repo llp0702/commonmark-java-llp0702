@@ -11,5 +11,3 @@ ports = [ 8000, 8001, 8002]
 # Index
 
 This is the home page of the Mini-Templates site.
-
-{{Metadata.general}}

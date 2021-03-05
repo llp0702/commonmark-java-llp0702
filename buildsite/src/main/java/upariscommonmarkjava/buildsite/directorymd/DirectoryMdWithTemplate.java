@@ -1,18 +1,12 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
-import upariscommonmarkjava.md2html.implementations.TomlFile;
-import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import upariscommonmarkjava.buildsite.DirectoryHtml;
-import upariscommonmarkjava.buildsite.SiteFormatException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 public class DirectoryMdWithTemplate extends DirectoryMd {
     protected final ArrayList<Path> pathsTemplates;

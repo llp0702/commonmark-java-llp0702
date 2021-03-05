@@ -1,13 +1,12 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
-import upariscommonmarkjava.md2html.implementations.TomlFile;
-import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import upariscommonmarkjava.buildsite.DirectoryHtml;
 import upariscommonmarkjava.buildsite.SiteFormatException;
+import upariscommonmarkjava.md2html.implementations.TomlFile;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
