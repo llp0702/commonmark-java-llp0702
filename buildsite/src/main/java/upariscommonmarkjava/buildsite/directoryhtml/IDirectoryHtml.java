@@ -1,8 +1,8 @@
 package upariscommonmarkjava.buildsite.directoryhtml;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public interface IDirectoryHtml {
-    void save(String path, String dir) throws IOException;
-    void save(String path) throws IOException;
+    void save(Path path) throws IOException;
 }

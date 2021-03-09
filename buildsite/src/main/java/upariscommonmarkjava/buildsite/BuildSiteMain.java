@@ -8,6 +8,8 @@ import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 public class BuildSiteMain {
@@ -36,10 +38,10 @@ public class BuildSiteMain {
                 IDirectoryHtml directoryHtml = directoryMd.generateHtml();
 
                 if(line.hasOption("o")) {
-                    directoryHtml.save(current_directory, line.getOptionValue("o"));
+                    directoryHtml.save(Paths.get(line.getOptionValue("o")));
                 }
                 else{
-                    directoryHtml.save(current_directory);
+                    directoryHtml.save(Paths.get(current_directory,"_output"));
                 }
             }
         }

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
+import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.*;
 class DirectoryHtmlTest {
     DirectoryMd correct_site;
@@ -46,7 +48,7 @@ class DirectoryHtmlTest {
     @Test
     void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save("src/test/resources/out/correct"));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/out/correct/_output")));
     }
 
     @Test

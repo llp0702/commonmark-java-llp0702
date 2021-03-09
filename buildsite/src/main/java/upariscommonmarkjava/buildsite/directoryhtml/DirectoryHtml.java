@@ -28,15 +28,13 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected List<Path> templatesFiles;
     private final Path inputPathBase;
 
-    public static DirectoryHtml create(Path input_path, ITOMLFile toml_options, List<Path> mdFilesPaths,
-                                       List<Path> staticFiles, List<Path> templatesFiles)
-    {
-        return new DirectoryHtml(input_path,toml_options,mdFilesPaths,staticFiles, templatesFiles);
+    public static DirectoryHtml create(Path inputPath, ITOMLFile tomlOptions, List<Path> mdFilesPaths,
+                                       List<Path> staticFiles, List<Path> templatesFiles) {
+        return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles);
     }
 
     protected DirectoryHtml(Path inputPathBase, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFiles,
-                            List<Path> templatesFiles)
-    {
+                            List<Path> templatesFiles) {
         this.inputPathBase = inputPathBase;
         this.tomlOptions = tomlOptions;
 
@@ -46,26 +44,12 @@ public class DirectoryHtml implements IDirectoryHtml {
         this.templatesFiles = templatesFiles;
     }
 
-    private Path extension2Html(Path pathMd){
-        final String name = pathMd.getFileName().toString();
-        return pathMd.resolveSibling(name.substring(0, name.lastIndexOf('.')) + ".html");
-    }
 
-    //create path\_output\...
-    public void save(String path) throws IOException
-    {
-        save(path,"_output");
-    }
 
-    //create path\dir\...
-    public void save(String path, String dir) throws IOException
-    {
-        Path output_folder =Paths.get(dir);
-        if(!output_folder.isAbsolute()){
-            output_folder = Paths.get(path, dir);
-        }
+    @Override
+    public void save(final Path targetBasePath) throws IOException {
 
-        File tmp = new File(output_folder.toString());
+        File tmp = new File(targetBasePath.toString());
         if(!tmp.mkdirs()){
             logger.log(Level.INFO,"No dir was created");
         }
@@ -77,44 +61,60 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
 
         //Copy static files
+        copyStaticFiles(targetBasePath);
+
+        //Convert Md to Html then Copy hrefs
+        convertMd2HtmlAndCopyHrefs(targetBasePath);
+
+    }
+
+    private void convertMd2HtmlAndCopyHrefs(Path targetBasePath) throws IOException {
+        for(Path inputMdFile: inputFilesMdPaths){
+
+            Path outputPath = callMd2Html(targetBasePath, inputMdFile);
+
+            //Save hrefs if not present
+            copyHrefsIfAbsent(targetBasePath, outputPath);
+        }
+    }
+
+    private Path callMd2Html(Path targetBasePath, Path inputMdFile) throws IOException {
+        Path outputPath = extension2Html(targetBasePath.resolve(inputMdFile));
+        Path inputPath = inputPathBase.resolve(inputMdFile);
+        Files.createDirectories(outputPath.getParent());
+
+        ICMFile cmFile = CMFile.fromPath(inputPath);
+        IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
+        return outputPath;
+    }
+
+    private void copyHrefsIfAbsent(Path targetBasePath, Path html) throws IOException {
+        List<String> hrefs = getHrefs(html);
+        for(String href:hrefs){
+            Path hrefShouldBe = Paths.get(targetBasePath.toString(), href);
+            if(!Files.exists(hrefShouldBe) ){
+                //In this case we search it in templates folder
+                Path hrefRecuperationFrom = templatesFiles.stream()
+                        .filter(x->x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
+                        .findAny()
+                        .orElse(null);
+                if(hrefRecuperationFrom!=null){
+                    Files.createDirectories(hrefShouldBe);
+                    Files.copy(hrefRecuperationFrom,hrefShouldBe,StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    private void copyStaticFiles(Path targetBasePath) throws IOException {
         for(Path staticPath : this.staticFiles) {
-            Path outputBase =  Paths.get(path, dir);
             Path staticPathRelative = inputPathBase.relativize(staticPath);
-            Path output = outputBase.resolve(staticPathRelative);
+            Path output = targetBasePath.resolve(staticPathRelative);
 
             Files.createDirectories(output);
             Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
         }
-
-        //Convert Md to Html then Copy hrefs
-        for(Path inputMdFile: inputFilesMdPaths){
-
-            Path outputPath = extension2Html(output_folder.resolve(inputMdFile));
-            Path inputPath = inputPathBase.resolve(inputMdFile);
-            Files.createDirectories(outputPath.getParent());
-
-            ICMFile cmFile = CMFile.fromPath(inputPath);
-            IConverterMd2Html converterMd2Html = new ConverterMd2Html();
-            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
-
-            //Save hrefs if not present
-            List<String> hrefs = getHrefs(outputPath);
-            for(String href:hrefs){
-                Path hrefShouldBe = Paths.get(output_folder.toString(), href);
-                if(!Files.exists(hrefShouldBe) ){
-                    //In this case we search it in templates folder
-                    Path hrefRecuperationFrom = templatesFiles.stream()
-                            .filter(x->x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
-                            .findAny()
-                            .orElse(null);
-                    if(hrefRecuperationFrom!=null){
-                        Files.createDirectories(hrefShouldBe);
-                        Files.copy(hrefRecuperationFrom,hrefShouldBe,StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-            }
-        }
-
     }
 
     private List<String> getHrefs(Path htmlPath){
@@ -132,4 +132,10 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
         return result;
     }
+
+    private Path extension2Html(Path pathMd){
+        final String name = pathMd.getFileName().toString();
+        return pathMd.resolveSibling(name.substring(0, name.lastIndexOf('.')) + ".html");
+    }
+
 }
