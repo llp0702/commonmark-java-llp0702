@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,13 +15,13 @@ class DirectoryHtmlTest {
 
     public static boolean isSimilare(DirectoryHtml dh, DirectoryMd d)
     {
-        /*if(d.getMdFilesPaths().size() != dh.getInputFilesPaths().size())
+        if(d.getMdFilesPaths().size() != dh.getInputFilesMdPaths().size())
             return false;
 
-        for(String path_md : d.getMdFilesPaths()) {
-            if (!dh.getInputFilesPaths().containsKey(path_md))
+        for(Path path_md : d.getMdFilesPaths()) {
+            if (!dh.getInputFilesMdPaths().contains(path_md))
                 return false;
-        }*/
+        }
         return true;
     }
 
