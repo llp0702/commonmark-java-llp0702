@@ -7,6 +7,7 @@ public interface ITheme {
     List<Path> getStaticPaths();
     List<Path> getTemplatePaths();
     String getName();
+    Path getBasePath();
     void addStaticPath(Path staticFilePath);
     void addTemplatePath(Path templateFilePath);
 }

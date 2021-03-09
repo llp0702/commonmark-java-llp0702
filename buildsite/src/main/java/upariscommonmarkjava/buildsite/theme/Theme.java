@@ -14,10 +14,10 @@ public class Theme implements ITheme {
     private final List<Path> templatePaths;
 
     @Getter
-    private final String name;
+    private final Path basePath;
 
-    public Theme(final String name){
-        this.name = name;
+    public Theme(final Path basePath){
+        this.basePath = basePath;
         staticPaths = new ArrayList<>();
         templatePaths = new ArrayList<>();
     }
@@ -35,4 +35,10 @@ public class Theme implements ITheme {
             templatePaths.add(templateFilePath);
         }
     }
+
+    @Override
+    public String getName(){
+        return basePath.getFileName().toString();
+    }
+
 }
