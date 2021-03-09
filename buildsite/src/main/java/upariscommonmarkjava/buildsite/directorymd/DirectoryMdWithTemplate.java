@@ -1,6 +1,7 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
-import upariscommonmarkjava.buildsite.DirectoryHtml;
+import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
+import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,14 +13,14 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
     protected final ArrayList<Path> pathsTemplates;
     private final String pathsParentTemplate;
 
-    protected DirectoryMdWithTemplate(File toml, File content, File templates) throws IOException{
+    protected DirectoryMdWithTemplate(File toml, File content, Path templates) throws IOException{
         super(toml,content);
         pathsTemplates = new ArrayList<>();
-        this.pathsParentTemplate = templates.getAbsolutePath();
-        parcoursTemplates(templates, "");
+        this.pathsParentTemplate = templates.toString();
+        parcoursTemplates(templates.toFile(),"");
     }
 
-    protected void parcoursTemplates(File templates, String path){
+    protected void parcoursTemplates(File templates, String basePath){
         if(templates == null) return;
 
         File[] contentFiles = templates.listFiles();
@@ -29,17 +30,17 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
             if(file == null) continue;
 
             if(file.isDirectory()) {
-                parcours(file, path + "/" + file.getName());
+                parcoursTemplates(file, basePath + "/" + file.getName());
             }else{
-                pathsTemplates.add(Paths.get(pathsParentTemplate, path , file.getName()));
+                pathsTemplates.add(Paths.get(pathsParentTemplate, basePath , file.getName()));
             }
         }
     }
 
     @Override
-    public DirectoryHtml generateHtml()
+    public IDirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.inputPath,this.tomlOptions,this.pathsMd,this.pathsOther, this.pathsTemplates);
+        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, this.pathsTemplates);
     }
 
 }

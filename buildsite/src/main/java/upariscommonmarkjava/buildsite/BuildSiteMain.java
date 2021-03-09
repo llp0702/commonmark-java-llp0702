@@ -2,7 +2,11 @@ package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
 
+import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
+import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
+import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
+
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -19,7 +23,7 @@ public class BuildSiteMain {
                 help();
             }else{
                 String current_directory = System.getProperty("user.dir");
-                DirectoryMd directoryMd;
+                IDirectoryMd directoryMd;
                 if(line.hasOption("i"))
                 {
                     directoryMd = DirectoryMd.open(line.getOptionValue("i"));
@@ -29,7 +33,7 @@ public class BuildSiteMain {
                     directoryMd = DirectoryMd.open(current_directory);
                 }
 
-                DirectoryHtml directoryHtml = directoryMd.generateHtml();
+                IDirectoryHtml directoryHtml = directoryMd.generateHtml();
 
                 if(line.hasOption("o")) {
                     directoryHtml.save(current_directory, line.getOptionValue("o"));

@@ -1,0 +1,135 @@
+package upariscommonmarkjava.buildsite.directoryhtml;
+
+import lombok.Getter;
+import upariscommonmarkjava.md2html.implementations.CMFile;
+import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ICMFile;
+import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class DirectoryHtml implements IDirectoryHtml {
+    public static final Logger logger = Logger.getLogger("Directory html logger");
+
+    @Getter
+    private final List<Path> inputFilesMdPaths;
+
+
+    protected ITOMLFile tomlOptions;
+    protected List<Path> staticFiles;
+    protected List<Path> templatesFiles;
+    private final Path inputPathBase;
+
+    public static DirectoryHtml create(Path input_path, ITOMLFile toml_options, List<Path> mdFilesPaths,
+                                       List<Path> staticFiles, List<Path> templatesFiles)
+    {
+        return new DirectoryHtml(input_path,toml_options,mdFilesPaths,staticFiles, templatesFiles);
+    }
+
+    protected DirectoryHtml(Path inputPathBase, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFiles,
+                            List<Path> templatesFiles)
+    {
+        this.inputPathBase = inputPathBase;
+        this.tomlOptions = tomlOptions;
+
+        this.inputFilesMdPaths = mdFilesPaths;
+
+        this.staticFiles = staticFiles;
+        this.templatesFiles = templatesFiles;
+    }
+
+    private Path extension2Html(Path pathMd){
+        final String name = pathMd.getFileName().toString();
+        return pathMd.resolveSibling(name.substring(0, name.lastIndexOf('.')) + ".html");
+    }
+
+    //create path\_output\...
+    public void save(String path) throws IOException
+    {
+        save(path,"_output");
+    }
+
+    //create path\dir\...
+    public void save(String path, String dir) throws IOException
+    {
+        Path output_folder =Paths.get(dir);
+        if(!output_folder.isAbsolute()){
+            output_folder = Paths.get(path, dir);
+        }
+
+        File tmp = new File(output_folder.toString());
+        if(!tmp.mkdirs()){
+            logger.log(Level.INFO,"No dir was created");
+        }
+
+        final File[] tmpFiles = tmp.listFiles();
+        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
+            logger.warning(tmp.getName() + " is already existing, please choose another output");
+            return;
+        }
+
+        //Copy static files
+        for(Path staticPath : this.staticFiles) {
+            Path outputBase =  Paths.get(path, dir);
+            Path staticPathRelative = inputPathBase.relativize(staticPath);
+            Path output = outputBase.resolve(staticPathRelative);
+
+            Files.createDirectories(output);
+            Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        //Convert Md to Html then Copy hrefs
+        for(Path inputMdFile: inputFilesMdPaths){
+
+            Path outputPath = extension2Html(output_folder.resolve(inputMdFile));
+            Path inputPath = inputPathBase.resolve(inputMdFile);
+            Files.createDirectories(outputPath.getParent());
+
+            ICMFile cmFile = CMFile.fromPath(inputPath);
+            IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
+
+            //Save hrefs if not present
+            List<String> hrefs = getHrefs(outputPath);
+            for(String href:hrefs){
+                Path hrefShouldBe = Paths.get(output_folder.toString(), href);
+                if(!Files.exists(hrefShouldBe) ){
+                    //In this case we search it in templates folder
+                    Path hrefRecuperationFrom = templatesFiles.stream()
+                            .filter(x->x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
+                            .findAny()
+                            .orElse(null);
+                    if(hrefRecuperationFrom!=null){
+                        Files.createDirectories(hrefShouldBe);
+                        Files.copy(hrefRecuperationFrom,hrefShouldBe,StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private List<String> getHrefs(Path htmlPath){
+        if(!Files.exists(htmlPath) || !Files.isRegularFile(htmlPath))return Collections.emptyList();
+        String htmlContent="";
+        try {
+            htmlContent = Files.readString(htmlPath);
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<>();
+        Matcher matcher  = Pattern.compile("href[ ]*=[ ]*['\"](.*?)['\"]").matcher(htmlContent);
+        while (matcher.find()){
+            result.add(matcher.group(1));
+        }
+        return result;
+    }
+}
