@@ -4,17 +4,16 @@ import lombok.Getter;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.SiteFormatException;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
+import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class DirectoryMd implements IDirectoryMd{
     @Getter
@@ -29,8 +28,7 @@ public class DirectoryMd implements IDirectoryMd{
     protected final Path basePath;
 
 
-    public static DirectoryMd open(final String path) throws SiteFormatException
-    {
+    public static DirectoryMd open(final String path) throws SiteFormatException {
         File folder = new File(path);
         if(!folder.isDirectory())throw new SiteFormatException("The file is not a folder");
 
@@ -56,21 +54,28 @@ public class DirectoryMd implements IDirectoryMd{
         Optional<File> optTemplatesDir = Arrays.stream(files)
                 .filter(x->"templates".equals(x.getName())).findAny();
 
-        try
-        {
-            return optTemplatesDir.isEmpty() ?
-            new DirectoryMd(optToml.get(), content) :
-            new DirectoryMdWithTemplate(optToml.get(), content, optTemplatesDir.get().toPath());
+        Optional<File> optThemesDir = Arrays.stream(files).filter(x->"themes".equals(x.getName()))
+                .findAny();
+
+        try {
+            if(optThemesDir.isPresent()){
+                return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content,
+                        optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
+            }else if(optTemplatesDir.isPresent()){
+                return new DirectoryMdWithTemplate(optToml.get().toPath(), content, optTemplatesDir.get().toPath());
+            }else{
+                return new DirectoryMd(optToml.get().toPath(), content);
+            }
         }
-        catch (IOException ioe)
-        {
+        catch (IOException ioe){
             throw new SiteFormatException("Error IOException : " + ioe.getMessage());
         }
     }
 
-    private ITOMLFile initOption(File toml) throws IOException
-    {
-        TomlFile it = TomlFile.fromPath(Paths.get(toml.getAbsolutePath()));
+
+
+    private ITOMLFile initOption(Path toml) throws IOException {
+        TomlFile it = TomlFile.fromPath(toml);
         it.parse();
         return it;
     }
@@ -101,8 +106,7 @@ public class DirectoryMd implements IDirectoryMd{
         }
     }
 
-    protected DirectoryMd(File toml, File content) throws IOException
-    {
+    protected DirectoryMd(Path toml, File content) throws IOException {
         this.basePath = content.toPath();
         this.tomlOptions = initOption(toml);
         mdFilesPaths = new ArrayList<>();
@@ -111,9 +115,17 @@ public class DirectoryMd implements IDirectoryMd{
     }
 
 
-
-    public IDirectoryHtml generateHtml()
-    {
+    public IDirectoryHtml generateHtml() {
         return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, new ArrayList<>());
+    }
+
+    @Override
+    public List<ITheme> getThemes() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Path> getTemplatesPaths() {
+        return Collections.emptyList();
     }
 }

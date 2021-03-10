@@ -1,6 +1,7 @@
 package upariscommonmarkjava.buildsite.directoryhtml;
 
 import lombok.Getter;
+import lombok.NonNull;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
@@ -28,20 +29,24 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected List<Path> templatesFiles;
     private final Path inputPathBase;
 
-    public static DirectoryHtml create(Path inputPath, ITOMLFile tomlOptions, List<Path> mdFilesPaths,
+    public static DirectoryHtml create(@NonNull Path inputPath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths,
                                        List<Path> staticFiles, List<Path> templatesFiles) {
         return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles);
     }
 
-    protected DirectoryHtml(Path inputPathBase, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFiles,
+    protected DirectoryHtml(@NonNull Path inputPathBase, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFiles,
                             List<Path> templatesFiles) {
         this.inputPathBase = inputPathBase;
+
         this.tomlOptions = tomlOptions;
 
         this.inputFilesMdPaths = mdFilesPaths;
 
         this.staticFiles = staticFiles;
+        if(this.staticFiles==null)this.staticFiles = new ArrayList<>();
+
         this.templatesFiles = templatesFiles;
+        if(this.templatesFiles==null)this.templatesFiles = new ArrayList<>();
     }
 
 

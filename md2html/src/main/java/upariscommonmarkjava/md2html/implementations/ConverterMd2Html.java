@@ -1,5 +1,6 @@
 package upariscommonmarkjava.md2html.implementations;
 
+import lombok.NonNull;
 import org.commonmark.Extension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -22,7 +23,7 @@ import java.util.List;
 
 
 public class ConverterMd2Html implements IConverterMd2Html {
-    public ConverterMd2Html(){
+    public ConverterMd2Html() {
         final List<Extension> extensions = Collections.singletonList(TomlMetaParser.create());
         parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder().extensions(extensions).build();
@@ -31,22 +32,22 @@ public class ConverterMd2Html implements IConverterMd2Html {
     private final Parser parser;
     private final HtmlRenderer htmlRenderer;
 
-    public Node parse(ICMFile cmFile)throws IOException {
+    public Node parse(@NonNull ICMFile cmFile) throws IOException {
         return parser.parseReader(cmFile.getReader());
     }
 
     @Override
-    public String parseAndConvert2Html(ICMFile cmFile, ITOMLFile globalMetadata,
+    public String parseAndConvert2Html(@NonNull ICMFile cmFile, ITOMLFile globalMetadata,
                                        List<Path> templatesFiles) throws IOException {
         return convert2Html(cmFile, globalMetadata, templatesFiles);
 
     }
 
     @Override
-        public void parseAndConvert2HtmlAndSave(ICMFile cmFile, ITOMLFile globalMetadata, Path destination,
+    public void parseAndConvert2HtmlAndSave(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, @NonNull Path destination,
                                             List<Path> templatesFiles) throws IOException {
         String resString = parseAndConvert2Html(cmFile, globalMetadata, templatesFiles);
-        if(!resString.isEmpty()){
+        if (!resString.isEmpty()) {
             Files.createDirectories(destination.getParent());
 
             Files.writeString(destination, resString, StandardOpenOption.WRITE,
@@ -55,42 +56,43 @@ public class ConverterMd2Html implements IConverterMd2Html {
         }
     }
 
-    private String wrapHtmlBody(String body){
-        return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>"+body+"</body></html>";
+    private String wrapHtmlBody(final String body) {
+        return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>" + body + "</body></html>";
     }
-    private String convert2Html(ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles) throws IOException {
+
+    private String convert2Html(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles) throws IOException {
         Node resNode = parse(cmFile);
         TomlVisitor t = new TomlVisitor();
         resNode.accept(t);
         cmFile.setTomlMetadataLocal(t.getData());
-        if(cmFile.isDraft())return "";
+        if (cmFile.isDraft()) return "";
         String htmlContent = htmlRenderer.render(resNode);
-        if(templateFiles==null || templateFiles.isEmpty()){
+        if (templateFiles == null || templateFiles.isEmpty()) {
             return wrapHtmlBody(htmlContent);
-        }else{
+        } else {
             return applyTemplateIfPresent(cmFile, globalMetadata, templateFiles, htmlContent);
         }
     }
 
-    private String applyTemplateIfPresent(ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
+    private String applyTemplateIfPresent(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
         List<TomlParseResult> metaDataLocal = cmFile.getTomlMetadataLocal();
         Path template = templateFiles.stream()
-                .filter(x->"default.html".equals(x.getFileName().toString()))
+                .filter(x -> "default.html".equals(x.getFileName().toString()))
                 .findAny().orElse(null);
-        for(TomlParseResult metaData:metaDataLocal){
-            if(metaData!=null){
+        for (TomlParseResult metaData : metaDataLocal) {
+            if (metaData != null) {
                 String curRes = metaData.getString("template");
-                if(curRes != null && !curRes.isEmpty() && !curRes.isBlank() ){
-                    template = templateFiles.stream().filter(x->x.normalize().toString().endsWith(curRes))
+                if (curRes != null && !curRes.isEmpty() && !curRes.isBlank()) {
+                    template = templateFiles.stream().filter(x -> x.normalize().toString().endsWith(curRes))
                             .findAny().orElse(null);
-                    if(template!=null)break;
+                    if (template != null) break;
                 }
             }
         }
-        if(template==null){
-            htmlContent =wrapHtmlBody(htmlContent);
+        if (template == null) {
+            htmlContent = wrapHtmlBody(htmlContent);
             return htmlContent;
-        }else{
+        } else {
             IHtmlTemplate htmlTemplate = HtmlTemplate.builder().md2HtmlContent(htmlContent)
                     .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
                     .templateContent(Files.readString(template))

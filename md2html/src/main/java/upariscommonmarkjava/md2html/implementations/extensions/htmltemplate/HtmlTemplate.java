@@ -1,6 +1,7 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
 import lombok.Builder;
+import lombok.NonNull;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
 import org.tomlj.TomlParseResult;
@@ -28,7 +29,7 @@ public class HtmlTemplate implements IHtmlTemplate {
     String templateContent;
     List<Path> templates;
 
-    private Object getMetadata(String key){
+    private Object getMetadata(@NonNull String key){
         for(TomlParseResult curMetadata:tomlMetadata){
             if(curMetadata==null)continue;
             Object curObject = curMetadata.get(key);
@@ -112,7 +113,7 @@ public class HtmlTemplate implements IHtmlTemplate {
 
     }
 
-    private String includeCase(String[] splittedSpace) throws IOException {
+    private String includeCase(@NonNull String[] splittedSpace) throws IOException {
         String currentMatch;
         String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
         Path toInclude = this.templates.stream().filter(x->toIncludeName.equals(x.getFileName().toString()))
@@ -130,7 +131,7 @@ public class HtmlTemplate implements IHtmlTemplate {
         return currentMatch;
     }
 
-    private String metadataCase(String[] splittedDot) {
+    private String metadataCase(@NonNull String[] splittedDot) {
         String currentMatch;
         if(splittedDot.length==1){
             currentMatch = allMetadataToHtml();

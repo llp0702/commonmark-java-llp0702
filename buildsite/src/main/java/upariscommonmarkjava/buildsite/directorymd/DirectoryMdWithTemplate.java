@@ -1,5 +1,7 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
+import lombok.Getter;
+import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 
@@ -10,13 +12,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class DirectoryMdWithTemplate extends DirectoryMd {
-    protected final ArrayList<Path> pathsTemplates;
-    private final String pathsParentTemplate;
+    @Getter
+    protected final ArrayList<Path> templatesPaths;
 
-    protected DirectoryMdWithTemplate(File toml, File content, Path templates) throws IOException{
+    private final String basePathTemplates;
+
+    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull File content,@NonNull Path templates) throws IOException{
         super(toml,content);
-        pathsTemplates = new ArrayList<>();
-        this.pathsParentTemplate = templates.toString();
+        templatesPaths = new ArrayList<>();
+        this.basePathTemplates = templates.toString();
         parcoursTemplates(templates.toFile(),"");
     }
 
@@ -32,7 +36,7 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
             if(file.isDirectory()) {
                 parcoursTemplates(file, basePath + "/" + file.getName());
             }else{
-                pathsTemplates.add(Paths.get(pathsParentTemplate, basePath , file.getName()));
+                templatesPaths.add(Paths.get(basePathTemplates, basePath , file.getName()));
             }
         }
     }
@@ -40,7 +44,7 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
     @Override
     public IDirectoryHtml generateHtml()
     {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, this.pathsTemplates);
+        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, this.templatesPaths);
     }
 
 }

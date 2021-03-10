@@ -16,24 +16,19 @@ public class Theme implements ITheme {
     @Getter
     private final Path basePath;
 
+    @Getter
+    private final boolean valid;
+
     public Theme(final Path basePath){
         this.basePath = basePath;
         staticPaths = new ArrayList<>();
         templatePaths = new ArrayList<>();
+        valid = parseTheme();
     }
 
-    @Override
-    public void addStaticPath(Path staticFilePath) {
-        if(staticFilePath != null){
-            staticPaths.add(staticFilePath);
-        }
-    }
-
-    @Override
-    public void addTemplatePath(Path templateFilePath) {
-        if(templateFilePath != null){
-            templatePaths.add(templateFilePath);
-        }
+    private boolean parseTheme(){
+        //TODO
+        return true;
     }
 
     @Override

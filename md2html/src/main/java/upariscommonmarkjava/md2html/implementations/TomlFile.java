@@ -2,6 +2,7 @@ package upariscommonmarkjava.md2html.implementations;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
@@ -22,11 +23,11 @@ public class TomlFile implements ITOMLFile {
 
 
 
-    public static TomlFile fromString(final String cmString) throws IOException {
+    public static TomlFile fromString(@NonNull final String cmString) throws IOException {
         return TomlFile.builder().reader(new StringReader(cmString)).build();
     }
 
-    public static TomlFile fromPath(final Path path) throws IOException {
+    public static TomlFile fromPath(@NonNull final Path path) throws IOException {
         return TomlFile.builder().reader(Files.newBufferedReader(path)).build();
     }
 
