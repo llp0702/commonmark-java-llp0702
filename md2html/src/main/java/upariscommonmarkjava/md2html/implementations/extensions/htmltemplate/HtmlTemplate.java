@@ -29,7 +29,8 @@ public class HtmlTemplate implements IHtmlTemplate {
     String templateContent;
     List<Path> templates;
 
-    private Object getMetadata(@NonNull String key){
+    public static Object getMetadata(@NonNull String key,ITOMLFile metadataGlobal,List<TomlParseResult> tomlMetadata)
+    {
         for(TomlParseResult curMetadata:tomlMetadata){
             if(curMetadata==null)continue;
             Object curObject = curMetadata.get(key);
@@ -52,6 +53,11 @@ public class HtmlTemplate implements IHtmlTemplate {
         }
         return null;
     }
+
+    protected Object getMetadata(@NonNull String key){
+        return getMetadata(key,metadataGlobal,tomlMetadata);
+    }
+
     private String allMetadataToHtml(){
         StringBuilder res=new StringBuilder();
         for(TomlParseResult curMetadata:tomlMetadata){
