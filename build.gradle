@@ -8,6 +8,7 @@ mainClassName = 'upariscommonmarkjava.SsgMain'
 dependencies {
     implementation project(':md2html')
     implementation project(':buildsite')
+    implementation project(':http_serv')
 }
 
 def outputDir= "${projectDir}/bin"
@@ -37,7 +38,8 @@ allprojects {
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-
+        implementation 'org.nanohttpd:nanohttpd:2.3.1'
+        implementation'org.nanohttpd:nanohttpd-webserver:2.3.1'
         implementation 'org.commonmark:commonmark:0.17.1'
         implementation 'org.commonmark:commonmark-ext-gfm-tables:0.17.1'
         implementation 'org.commonmark:commonmark-ext-yaml-front-matter:0.17.1'
