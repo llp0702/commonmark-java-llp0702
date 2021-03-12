@@ -116,7 +116,8 @@ public class DirectoryMd implements IDirectoryMd{
 
 
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, new ArrayList<>());
+        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), null );
     }
 
     @Override

@@ -1,6 +1,8 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
 import lombok.Getter;
+import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
+import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.buildsite.theme.Theme;
 
@@ -9,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -42,6 +45,22 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
     }
 
 
+    @Override
+    public IDirectoryHtml generateHtml() {
+        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths,  getThemeIfPresent() );
+    }
 
+    private ITheme getThemeIfPresent(){
+        if(tomlOptions.getData() != null){
+            final String themeName = tomlOptions.getData().getString("general.theme");
+            if(themeName != null && !themeName.isBlank()){
+                return themes.stream().
+                        filter(theme->themeName.equals(theme.getName()))
+                        .findFirst().orElse(null);
+            }
+        }
+        return null;
+    }
 
 }

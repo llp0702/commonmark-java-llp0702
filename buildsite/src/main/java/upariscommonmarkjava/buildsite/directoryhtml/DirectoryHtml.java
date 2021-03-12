@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite.directoryhtml;
 
 import lombok.Getter;
 import lombok.NonNull;
+import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
@@ -10,8 +11,13 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -27,15 +33,16 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFiles;
     protected List<Path> templatesFiles;
+    protected ITheme theme;
     private final Path inputPathBase;
 
     public static DirectoryHtml create(@NonNull Path inputPath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths,
-                                       List<Path> staticFiles, List<Path> templatesFiles) {
-        return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles);
+                                       List<Path> staticFiles, List<Path> templatesFiles, ITheme theme) {
+        return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles, theme);
     }
 
     protected DirectoryHtml(@NonNull Path inputPathBase, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFiles,
-                            List<Path> templatesFiles) {
+                            List<Path> templatesFiles, ITheme theme) {
         this.inputPathBase = inputPathBase;
 
         this.tomlOptions = tomlOptions;
@@ -47,12 +54,14 @@ public class DirectoryHtml implements IDirectoryHtml {
 
         this.templatesFiles = templatesFiles;
         if(this.templatesFiles==null)this.templatesFiles = new ArrayList<>();
+
+        this.theme = theme;
     }
 
 
 
     @Override
-    public void save(final Path targetBasePath) throws IOException {
+    public void save(@NonNull final Path targetBasePath) throws IOException {
 
         File tmp = new File(targetBasePath.toString());
         if(!tmp.mkdirs()){
@@ -66,14 +75,19 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
 
         //Copy static files
-        copyStaticFiles(targetBasePath);
-
+        copyStaticFiles(targetBasePath, this.staticFiles ,inputPathBase, true);
         //Convert Md to Html then Copy hrefs
         convertMd2HtmlAndCopyHrefs(targetBasePath);
 
+        if(theme != null && theme.isValid()){
+            //If there is template, we copy its static files
+            copyStaticFiles(targetBasePath, theme.getStaticPaths() ,theme.getBasePath().resolve("static"), false);
+
+        }
+
     }
 
-    private void convertMd2HtmlAndCopyHrefs(Path targetBasePath) throws IOException {
+    private void convertMd2HtmlAndCopyHrefs(@NonNull Path targetBasePath) throws IOException {
         for(Path inputMdFile: inputFilesMdPaths){
 
             Path outputPath = callMd2Html(targetBasePath, inputMdFile);
@@ -83,7 +97,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    private Path callMd2Html(Path targetBasePath, Path inputMdFile) throws IOException {
+    private Path callMd2Html(@NonNull Path targetBasePath, @NonNull Path inputMdFile) throws IOException {
         Path outputPath = extension2Html(targetBasePath.resolve(inputMdFile));
         Path inputPath = inputPathBase.resolve(inputMdFile);
         Files.createDirectories(outputPath.getParent());
@@ -94,7 +108,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         return outputPath;
     }
 
-    private void copyHrefsIfAbsent(Path targetBasePath, Path html) throws IOException {
+    private void copyHrefsIfAbsent(@NonNull Path targetBasePath, @NonNull Path html) throws IOException {
         List<String> hrefs = getHrefs(html);
         for(String href:hrefs){
             Path hrefShouldBe = Paths.get(targetBasePath.toString(), href);
@@ -112,17 +126,20 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    private void copyStaticFiles(Path targetBasePath) throws IOException {
-        for(Path staticPath : this.staticFiles) {
-            Path staticPathRelative = inputPathBase.relativize(staticPath);
+    private void copyStaticFiles(@NonNull Path targetBasePath, @NonNull List<Path> staticFiles, @NonNull Path fromBasePath, boolean replaceIfExisting) throws IOException {
+        for(Path staticPath : staticFiles) {
+            Path staticPathRelative = fromBasePath.relativize(staticPath);
             Path output = targetBasePath.resolve(staticPathRelative);
-
-            Files.createDirectories(output);
-            Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
+            Files.createDirectories(output.getParent());
+            if(replaceIfExisting){
+                Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
+            }else if(!Files.exists(output)){
+                Files.copy(staticPath, output);
+            }
         }
     }
 
-    private List<String> getHrefs(Path htmlPath){
+    private List<String> getHrefs(@NonNull Path htmlPath){
         if(!Files.exists(htmlPath) || !Files.isRegularFile(htmlPath))return Collections.emptyList();
         String htmlContent="";
         try {
@@ -138,7 +155,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         return result;
     }
 
-    private Path extension2Html(Path pathMd){
+    private Path extension2Html(@NonNull Path pathMd){
         final String name = pathMd.getFileName().toString();
         return pathMd.resolveSibling(name.substring(0, name.lastIndexOf('.')) + ".html");
     }

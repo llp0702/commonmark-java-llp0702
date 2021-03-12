@@ -10,18 +10,27 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 public class DirectoryMdWithTemplate extends DirectoryMd {
     @Getter
-    protected final ArrayList<Path> templatesPaths;
+    protected final List<Path> templatesPaths;
 
     private final String basePathTemplates;
 
-    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull File content,@NonNull Path templates) throws IOException{
+    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull File content, Path templates) throws IOException{
         super(toml,content);
-        templatesPaths = new ArrayList<>();
-        this.basePathTemplates = templates.toString();
-        parcoursTemplates(templates.toFile(),"");
+        if(templates!=null) {
+            this.templatesPaths = new ArrayList<>();
+            this.basePathTemplates = templates.toString();
+            parcoursTemplates(templates.toFile(), "");
+        }else{
+            this.templatesPaths = Collections.<Path>emptyList();
+            this.basePathTemplates = "";
+        }
     }
 
     protected void parcoursTemplates(File templates, String basePath){
@@ -42,9 +51,9 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
     }
 
     @Override
-    public IDirectoryHtml generateHtml()
-    {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, this.templatesPaths);
+    public IDirectoryHtml generateHtml() {
+        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths, null);
     }
 
 }
