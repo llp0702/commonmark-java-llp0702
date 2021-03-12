@@ -88,7 +88,7 @@ public class DirectoryMd implements IDirectoryMd{
 
             if(file.isDirectory())
             {
-                parcours(file, basePath + "/" + file.getName());
+                parcours(file, basePath + file.getName() + "/");
             }
             else if (file.getName().endsWith(".md"))
             {

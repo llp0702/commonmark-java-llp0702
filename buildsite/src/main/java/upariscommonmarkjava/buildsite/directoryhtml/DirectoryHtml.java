@@ -9,6 +9,7 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 import java.util.logging.Level;
@@ -89,19 +90,36 @@ public class DirectoryHtml implements IDirectoryHtml {
         return outputPath;
     }
 
+    public static boolean isUrl(String url)
+    {
+        /* Try creating a valid URL */
+        try {
+            new URL(url).toURI();
+            return true;
+        }
+
+        // If there was an Exception
+        // while creating URL object
+        catch (Exception e) {
+            return false;
+        }
+    }
+
     private void copyHrefsIfAbsent(Path targetBasePath, Path html) throws IOException {
         List<String> hrefs = getHrefs(html);
-        for(String href:hrefs){
-            Path hrefShouldBe = Paths.get(targetBasePath.toString(), href);
-            if(!Files.exists(hrefShouldBe) ){
-                //In this case we search it in templates folder
-                Path hrefRecuperationFrom = templatesFiles.stream()
-                        .filter(x->x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
-                        .findAny()
-                        .orElse(null);
-                if(hrefRecuperationFrom!=null){
-                    Files.createDirectories(hrefShouldBe);
-                    Files.copy(hrefRecuperationFrom,hrefShouldBe,StandardCopyOption.REPLACE_EXISTING);
+        for(String href:hrefs) {
+            if (!isUrl(href) && !Paths.get(href).isAbsolute()) {
+                Path hrefShouldBe = Paths.get(targetBasePath.toString(), href);
+                if (!Files.exists(hrefShouldBe)) {
+                    //In this case we search it in templates folder
+                    Path hrefRecuperationFrom = templatesFiles.stream()
+                            .filter(x -> x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
+                            .findAny()
+                            .orElse(null);
+                    if (hrefRecuperationFrom != null) {
+                        Files.createDirectories(hrefShouldBe.getParent());
+                        Files.copy(hrefRecuperationFrom, hrefShouldBe, StandardCopyOption.REPLACE_EXISTING);
+                    }
                 }
             }
         }
@@ -109,11 +127,10 @@ public class DirectoryHtml implements IDirectoryHtml {
 
     private void copyStaticFiles(Path targetBasePath) throws IOException {
         for(Path staticPath : this.staticFiles) {
-            Path staticPathRelative = inputPathBase.relativize(staticPath);
-            Path output = targetBasePath.resolve(staticPathRelative);
+            Path output = targetBasePath.resolve(staticPath);
 
-            Files.createDirectories(output);
-            Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
+            Files.createDirectories(output.getParent());
+            Files.copy(inputPathBase.resolve(staticPath), output,StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
