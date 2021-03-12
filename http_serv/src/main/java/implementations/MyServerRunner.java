@@ -15,7 +15,7 @@ public class MyServerRunner extends ServerRunner {
         }
 
         System.out.println("Server started, Hit Enter to stop.\n");
-        System.out.println("\nRunning! Point your browsers to http://localhost:8080/ \n");
+        System.out.println("\nRunning! Point your browsers to http://localhost:"+server.getListeningPort()+"/ \n");
 
         try {
             //Code à mettre ici pour incremental

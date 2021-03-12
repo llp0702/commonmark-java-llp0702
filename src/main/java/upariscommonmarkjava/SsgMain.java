@@ -1,5 +1,6 @@
 package upariscommonmarkjava;
 
+import implementations.App2;
 import org.apache.commons.cli.*;
 import upariscommonmarkjava.buildsite.BuildSiteMain;
 import upariscommonmarkjava.http_serv.HttpMain;
@@ -73,16 +74,18 @@ public class SsgMain {
             return;
         }
 
-        if(command.equals(BUILD)){
-            if(Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))){
+        if(command.equals(BUILD)) {
+            if (Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))) {
                 Md2HtmlMain.main(args);
-            }else if(command.equals(SERVE)){
-                HttpMain.main(args);
             }
+        }else if(command.equals(SERVE)){
+            HttpMain.main(args);
+
+        }
             else{
                 BuildSiteMain.main(args);
             }
-        }
+
 
     }
 

@@ -25,7 +25,9 @@ task deploy (dependsOn: distZip) {
         }
     }
 }
-
+run{
+    standardInput = System.in
+}
 allprojects {
     repositories {
         mavenCentral()
