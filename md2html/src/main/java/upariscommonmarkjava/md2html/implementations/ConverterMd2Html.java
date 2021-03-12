@@ -6,6 +6,7 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.tomlj.TomlParseResult;
+import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.HtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
@@ -93,7 +94,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
             htmlContent = wrapHtmlBody(htmlContent);
             return htmlContent;
         } else {
-            IHtmlTemplate htmlTemplate = HtmlTemplate.builder().md2HtmlContent(htmlContent)
+            IHtmlTemplate htmlTemplate = AdvancedHtmlTemplate.builder().md2HtmlContent(htmlContent)
                     .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
                     .templateContent(Files.readString(template))
                     .templates(templateFiles).build();

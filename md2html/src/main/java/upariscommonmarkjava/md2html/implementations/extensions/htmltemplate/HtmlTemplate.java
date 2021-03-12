@@ -1,7 +1,7 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
-import lombok.Builder;
 import lombok.NonNull;
+import lombok.experimental.SuperBuilder;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
 import org.tomlj.TomlParseResult;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Builder
+@SuperBuilder
 public class HtmlTemplate implements IHtmlTemplate {
     public static final Logger logger = Logger.getLogger("Html Template logger");
 
@@ -89,8 +89,6 @@ public class HtmlTemplate implements IHtmlTemplate {
         }
         return metadata.toString();
     }
-
-
 
     public String apply() throws IOException {
         Matcher matcher  = Pattern.compile("\\{\\{(.*?)\\}\\}").matcher(templateContent);

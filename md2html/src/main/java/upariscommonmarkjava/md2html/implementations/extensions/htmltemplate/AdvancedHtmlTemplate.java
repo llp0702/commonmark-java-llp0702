@@ -1,62 +1,82 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
+import lombok.experimental.SuperBuilder;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlParseResult;
-import org.w3c.css.util.Warning;
-import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
+import org.tomlj.TomlTable;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuperBuilder
 public class AdvancedHtmlTemplate extends HtmlTemplate {
-    AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlParseResult> tomlMetadata, String templateContent, List<Path> templates) {
-        super(md2HtmlContent, metadataGlobal, tomlMetadata, templateContent, templates);
-    }
 
     @Override
     public String apply() throws IOException {
-        Matcher matcher = Pattern.compile("\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}(.*?)\\{% endfor %\\}").matcher(templateContent);
-
+        Matcher matcherFor = Pattern.compile("\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{% endfor %\\}").matcher(templateContent);
         StringBuffer result = new StringBuffer(templateContent.length());
-        while (matcher.find()) {
-            String element = matcher.group(1).trim();
-            String array = matcher.group(2).trim();
-            String inner_content = matcher.group(3).trim();
 
-            Object element_object = super.getMetadata(array);
-            if (element_object instanceof TomlArray) {
-                for (Object o : ((TomlArray) element_object).toList()) {
-                    Matcher match_element = Pattern.compile("\\{\\{[ ]*" + element + "(\\.[^ ]+?)\\}\\}").matcher(inner_content);
-                    StringBuffer result_element = new StringBuffer(inner_content.length());
+        while (matcherFor.find()) {
+            matchFor(matcherFor, result);
+        }
 
-                    while (match_element.find()) {
-                        String currentMatch = matcher.group(1).trim();
-                        currentMatch = "{{ metadata" + currentMatch + " }}";
-                        match_element.appendReplacement(result, Matcher.quoteReplacement(currentMatch));
-                    }
-                    match_element.appendTail(result_element);
+        matcherFor.appendTail(result);
+        this.templateContent = result.toString();
+        return super.apply();
+    }
 
-                    result.append(HtmlTemplate.builder()
+    private void matchFor(Matcher matcher, StringBuffer result) throws IOException {
+        String element = matcher.group(1).trim();
+        String array = matcher.group(2).trim();
+        String innerContent = matcher.group(3).trim();
+
+        Object elementObject = super.getMetadata(array);
+
+        StringBuilder sb = new StringBuilder();
+
+        if (elementObject instanceof TomlArray) {
+            for (Object o : ((TomlArray) elementObject).toList()) {
+
+                Matcher matchElement = Pattern.compile("\\{\\{[ ]*" + element + "(\\.[^ ]+?)\\}\\}").matcher(innerContent);
+                StringBuffer resultElement = new StringBuffer(innerContent.length());
+
+                while (matchElement.find()) {
+                    String currentMatch = matcher.group(1).trim();
+                    currentMatch = "{{ metadata" + currentMatch + " }}";
+                    matchElement.appendReplacement(sb, Matcher.quoteReplacement(currentMatch));
+                }
+
+                matchElement.appendTail(resultElement);
+
+                if(o instanceof TomlTable)
+                {
+                    sb.append(HtmlTemplate.builder()
                             .md2HtmlContent(this.md2HtmlContent)
                             .metadataGlobal(this.metadataGlobal)
                             .tomlMetadata(List.of((TomlParseResult) o))
-                            .templateContent(result_element.toString())
+                            .templateContent(resultElement.toString())
                             .templates(this.templates).build().apply());
+                } else {
+
+                    Matcher replaceElement = Pattern.compile("\\{\\{[ ]*" + element + "[ ]*\\}\\}").matcher(innerContent);
+
+                    StringBuilder tmpReplace = new StringBuilder(innerContent.length());
+
+                    while(replaceElement.find())
+                    {
+                        replaceElement.appendReplacement(tmpReplace, Matcher.quoteReplacement(o.toString()));
+                    }
+
+                    replaceElement.appendTail(tmpReplace);
+                    sb.append(tmpReplace);
                 }
-            } else {
-                logger.warning("Element non iterable");
-                array = "";
-                element = "";
             }
+        } else {
+            logger.warning("Element non iterable");
         }
 
-        //TODO
-
-        return super.apply();
+        matcher.appendReplacement(result, Matcher.quoteReplacement(sb.toString()));
     }
 }
