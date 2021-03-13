@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -49,7 +52,13 @@ class DirectoryHtmlTest {
     @Test
     void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/out/correct/_output")));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/test1")));
+    }
+
+    @Test
+    void testSaveAll()
+    {
+        assertDoesNotThrow(() ->  correct_html.saveAll(Paths.get("src/test/resources/test2")));
     }
 
     @Test
