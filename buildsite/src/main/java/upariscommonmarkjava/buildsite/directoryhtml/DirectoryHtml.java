@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class DirectoryHtml implements IDirectoryHtml {
     public static final Logger logger = Logger.getLogger("Directory html logger");
@@ -55,10 +56,20 @@ public class DirectoryHtml implements IDirectoryHtml {
             logger.log(Level.INFO,"No dir was created");
         }
 
-        final File[] tmpFiles = tmp.listFiles();
-        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
-            logger.warning(tmp.getName() + " is already existing, please choose another output");
-            return;
+        //Copy static files
+        copyStaticFilesIfNeeded(targetBasePath);
+
+        //Convert Md to Html then Copy hrefs
+        convertMd2HtmlAndCopyHrefsIfNeeded(targetBasePath);
+
+    }
+
+    @Override
+    public void saveAll(final Path targetBasePath) throws IOException {
+
+        File tmp = new File(targetBasePath.toString());
+        if(!tmp.mkdirs()){
+            logger.log(Level.INFO,"No dir was created");
         }
 
         //Copy static files
@@ -69,25 +80,54 @@ public class DirectoryHtml implements IDirectoryHtml {
 
     }
 
+    private void copyStaticFiles(Path targetBasePath) throws IOException {
+        for(Path staticPath : this.staticFiles) {
+            Path output = targetBasePath.resolve(staticPath);
+
+            Files.createDirectories(output.getParent());
+            Files.copy(inputPathBase.resolve(staticPath), output,StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private void convertMd2HtmlAndCopyHrefsIfNeeded(Path targetBasePath) throws IOException {
+        for(Path inputMdFile: inputFilesMdPaths){
+            Path outputPath = extension2Html(targetBasePath.resolve(inputMdFile));
+            Path inputPath = inputPathBase.resolve(inputMdFile);
+            if(needBuild(inputPath, outputPath)){
+                callMd2Html(inputPath, outputPath);
+            }
+            copyHrefsIfAbsent(targetBasePath, outputPath);
+        }
+    }
+
     private void convertMd2HtmlAndCopyHrefs(Path targetBasePath) throws IOException {
         for(Path inputMdFile: inputFilesMdPaths){
-
-            Path outputPath = callMd2Html(targetBasePath, inputMdFile);
+            Path outputPath = extension2Html(targetBasePath.resolve(inputMdFile));
+            Path inputPath = inputPathBase.resolve(inputMdFile);
+            callMd2Html(inputPath,outputPath);
 
             //Save hrefs if not present
             copyHrefsIfAbsent(targetBasePath, outputPath);
         }
     }
 
-    private Path callMd2Html(Path targetBasePath, Path inputMdFile) throws IOException {
+    /*private Optional<Path> callMd2Html(Path targetBasePath, Path inputMdFile) throws IOException {
         Path outputPath = extension2Html(targetBasePath.resolve(inputMdFile));
         Path inputPath = inputPathBase.resolve(inputMdFile);
         Files.createDirectories(outputPath.getParent());
-
+        if(inputPath.toFile().lastModified() <= outputPath.toFile().lastModified()){
+            return Optional.empty();
+        }
         ICMFile cmFile = CMFile.fromPath(inputPath);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html();
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
-        return outputPath;
+        return Optional.of(outputPath);
+    }*/
+    private void callMd2Html(Path inputPath,Path outputPath) throws IOException {
+            Files.createDirectories(outputPath.getParent());
+            ICMFile cmFile = CMFile.fromPath(inputPath);
+            IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+            converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
     }
 
     public static boolean isUrl(String url)
@@ -125,12 +165,18 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    private void copyStaticFiles(Path targetBasePath) throws IOException {
+    private boolean needBuild(Path input,Path target){
+        return input.toFile().lastModified() > target.toFile().lastModified();
+    }
+
+    private void copyStaticFilesIfNeeded(Path targetBasePath) throws IOException {
         for(Path staticPath : this.staticFiles) {
             Path output = targetBasePath.resolve(staticPath);
-
-            Files.createDirectories(output.getParent());
-            Files.copy(inputPathBase.resolve(staticPath), output,StandardCopyOption.REPLACE_EXISTING);
+            Path input = inputPathBase.resolve(staticPath);
+            if(needBuild(input, output)){
+                Files.createDirectories(output.getParent());
+                Files.copy(input, output,StandardCopyOption.REPLACE_EXISTING);
+            }
         }
     }
 
