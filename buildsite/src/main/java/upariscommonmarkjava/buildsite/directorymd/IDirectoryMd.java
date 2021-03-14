@@ -7,10 +7,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface IDirectoryMd  {
-    Path getBasePath();
+    Path getContentBasePath();
     List<Path> getMdFilesPaths();
     List<Path> getStaticFilesPaths();
     List<Path> getTemplatesPaths();
+    Path getTemplateBasePath();
     public IDirectoryHtml generateHtml();
     List<ITheme> getThemes();
 }

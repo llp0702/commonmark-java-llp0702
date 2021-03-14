@@ -12,8 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class DirectoryMd implements IDirectoryMd{
     @Getter
@@ -25,8 +26,9 @@ public class DirectoryMd implements IDirectoryMd{
     protected final ITOMLFile tomlOptions;
 
     @Getter
-    protected final Path basePath;
+    protected final Path contentBasePath;
 
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     public static DirectoryMd open(final String path) throws SiteFormatException {
         File folder = new File(path);
@@ -59,12 +61,12 @@ public class DirectoryMd implements IDirectoryMd{
 
         try {
             if(optThemesDir.isPresent()){
-                return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content,
+                return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content.toPath(),
                         optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
             }else if(optTemplatesDir.isPresent()){
-                return new DirectoryMdWithTemplate(optToml.get().toPath(), content, optTemplatesDir.get().toPath());
+                return new DirectoryMdWithTemplate(optToml.get().toPath(), content.toPath(), optTemplatesDir.get().toPath());
             }else{
-                return new DirectoryMd(optToml.get().toPath(), content);
+                return new DirectoryMd(optToml.get().toPath(), content.toPath());
             }
         }
         catch (IOException ioe){
@@ -80,43 +82,35 @@ public class DirectoryMd implements IDirectoryMd{
         return it;
     }
 
-    protected void parcours(File content, String basePath){
-        if(content == null)
-            return;
-        File[] contentFiles = content.listFiles();
-        if(contentFiles==null)
-            return;
-
-        for(File file : contentFiles) {
-            if(file == null)
-                continue;
-
-            if(file.isDirectory())
-            {
-                parcours(file, basePath + file.getName() + "/");
-            }
-            else if (file.getName().endsWith(".md"))
-            {
-                mdFilesPaths.add(Paths.get(basePath,  file.getName()));
-            }
-            else
-            {
-                staticFilesPaths.add(Paths.get(basePath, file.getName()));
-            }
+    protected void parcoursContent(Path contentBasePath){
+        if(contentBasePath == null) return;
+        try(final Stream<Path> paths = Files.list(contentBasePath)){
+            paths.forEach(currentPath ->{
+                if(Files.isDirectory(currentPath)){
+                    parcoursContent(currentPath);
+                }else if (currentPath.getFileName().toString().endsWith(".md")) {
+                    mdFilesPaths.add(currentPath);
+                }else{
+                    staticFilesPaths.add(currentPath);
+                }
+            });
+        }catch (IOException e){
+            logger.warning("IOException during parcoursThemes");
         }
+
     }
 
-    protected DirectoryMd(Path toml, File content) throws IOException {
-        this.basePath = content.toPath();
+    protected DirectoryMd(Path toml, Path content) throws IOException {
+        this.contentBasePath = content;
         this.tomlOptions = initOption(toml);
         mdFilesPaths = new ArrayList<>();
         staticFilesPaths = new ArrayList<>();
-        parcours(content,"");
+        parcoursContent(content);
     }
 
 
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
                 Collections.emptyList(), null );
     }
 
@@ -128,5 +122,10 @@ public class DirectoryMd implements IDirectoryMd{
     @Override
     public List<Path> getTemplatesPaths() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Path getTemplateBasePath() {
+        return null;
     }
 }

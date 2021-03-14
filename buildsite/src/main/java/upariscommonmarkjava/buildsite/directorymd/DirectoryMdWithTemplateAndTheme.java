@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -22,7 +21,7 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
     @Getter
     private final List<ITheme> themes;
 
-    protected DirectoryMdWithTemplateAndTheme(Path toml, File content, Path templates, Path themesBasePath) throws IOException {
+    protected DirectoryMdWithTemplateAndTheme(Path toml, Path content, Path templates, Path themesBasePath) throws IOException {
         super(toml, content, templates);
         this.themesBasePath = themesBasePath;
         this.themes = new ArrayList<>();
@@ -47,7 +46,7 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
 
     @Override
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
                 this.templatesPaths,  getThemeIfPresent() );
     }
 
