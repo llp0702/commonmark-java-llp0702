@@ -26,12 +26,11 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
 
     protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull Path content, Path templates) throws IOException{
         super(toml,content);
+        this.templatesPaths = new ArrayList<>();
         if(templates!=null) {
-            this.templatesPaths = new ArrayList<>();
             this.templateBasePath = templates;
             parcoursTemplates(templates);
         }else{
-            this.templatesPaths = Collections.<Path>emptyList();
             this.templateBasePath = null;
         }
     }

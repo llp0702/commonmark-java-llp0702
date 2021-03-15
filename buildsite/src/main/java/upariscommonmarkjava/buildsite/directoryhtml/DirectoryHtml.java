@@ -32,8 +32,8 @@ public class DirectoryHtml implements IDirectoryHtml {
 
 
     protected ITOMLFile tomlOptions;
-    protected List<Path> staticFiles;
-    protected List<Path> templatesFiles;
+    protected List<Path> staticFilesPaths;
+    protected List<Path> templatesPaths;
     protected ITheme theme;
     private final Path inputContentBasePath;
 
@@ -42,19 +42,19 @@ public class DirectoryHtml implements IDirectoryHtml {
         return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles, theme);
     }
 
-    protected DirectoryHtml(@NonNull Path inputContentBasePath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFiles,
-                            List<Path> templatesFiles, ITheme theme) {
+    protected DirectoryHtml(@NonNull Path inputContentBasePath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFilesPaths,
+                            List<Path> templatesPaths, ITheme theme) {
         this.inputContentBasePath = inputContentBasePath;
 
         this.tomlOptions = tomlOptions;
 
         this.inputFilesMdPaths = mdFilesPaths;
 
-        this.staticFiles = staticFiles;
-        if(this.staticFiles==null)this.staticFiles = new ArrayList<>();
+        this.staticFilesPaths = staticFilesPaths;
+        if(this.staticFilesPaths ==null)this.staticFilesPaths = new ArrayList<>();
 
-        this.templatesFiles = templatesFiles;
-        if(this.templatesFiles==null)this.templatesFiles = new ArrayList<>();
+        this.templatesPaths = templatesPaths;
+        if(this.templatesPaths ==null)this.templatesPaths = new ArrayList<>();
 
         this.theme = theme;
     }
@@ -76,7 +76,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
 
         //Copy static files
-        copyStaticFiles(targetBasePath, this.staticFiles , inputContentBasePath, true);
+        copyStaticFiles(targetBasePath, this.staticFilesPaths, inputContentBasePath, true);
         //Convert Md to Html then Copy hrefs
         convertMd2HtmlAndCopyHrefs(targetBasePath);
 
@@ -104,12 +104,20 @@ public class DirectoryHtml implements IDirectoryHtml {
 
         ICMFile cmFile = CMFile.fromPath(inputMdFile);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html();
-        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesFiles);
+        if(theme != null && theme.isValid()){
+            for(Path themeTemplate: theme.getTemplatePaths()){
+                if(themeTemplate==null)continue;
+                if(this.templatesPaths.stream().noneMatch(templatePath->templatePath.getFileName()
+                        .equals(themeTemplate.getFileName()))){
+                    templatesPaths.add(themeTemplate);
+                }
+            }
+        }
+        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesPaths);
         return outputPath;
     }
 
-    public static boolean isUrl(String url)
-    {
+    public static boolean isUrl(String url) {
         /* Try creating a valid URL */
         try {
             new URL(url).toURI();
@@ -130,7 +138,7 @@ public class DirectoryHtml implements IDirectoryHtml {
                 Path hrefShouldBe = Paths.get(targetBasePath.toString(), href);
                 if (!Files.exists(hrefShouldBe)) {
                     //In this case we search it in templates folder
-                    Path hrefRecuperationFrom = templatesFiles.stream()
+                    Path hrefRecuperationFrom = templatesPaths.stream()
                             .filter(x -> x.getFileName().toString().equals(hrefShouldBe.getFileName().toString()))
                             .findAny()
                             .orElse(null);
