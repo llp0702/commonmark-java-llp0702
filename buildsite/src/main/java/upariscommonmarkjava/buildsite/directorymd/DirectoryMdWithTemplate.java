@@ -5,12 +5,10 @@ import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;

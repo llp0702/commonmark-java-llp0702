@@ -4,7 +4,6 @@ import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 import org.tomlj.TomlArray;
 import org.tomlj.TomlInvalidTypeException;
-import org.tomlj.TomlParseResult;
 import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import upariscommonmarkjava.md2html.interfaces.extensions.htmltemplate.IHtmlTemplate;
@@ -15,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,13 +25,13 @@ public class HtmlTemplate implements IHtmlTemplate {
 
     String md2HtmlContent;
     ITOMLFile metadataGlobal;
-    List<TomlParseResult> tomlMetadata;
+    List<TomlTable> tomlMetadata;
     String templateContent;
     List<Path> templates;
 
-    public static Object getMetadata(@NonNull String key,ITOMLFile metadataGlobal,List<TomlParseResult> tomlMetadata)
+    public static Object getMetadata(@NonNull String key,ITOMLFile metadataGlobal,List<TomlTable> tomlMetadata)
     {
-        for(TomlParseResult curMetadata:tomlMetadata){
+        for(TomlTable curMetadata:tomlMetadata){
             if(curMetadata==null)continue;
             Object curObject = curMetadata.get(key);
             try{
@@ -54,13 +54,26 @@ public class HtmlTemplate implements IHtmlTemplate {
         return null;
     }
 
+    protected static StringBuilder  matchAndReplace(String pattern, String innerContent, BiConsumer<Matcher,StringBuilder> replace) {
+        Matcher replaceElement = Pattern.compile(pattern).matcher(innerContent);
+        StringBuilder tmpReplace = new StringBuilder(innerContent.length());
+
+        while(replaceElement.find())
+        {
+            replace.accept(replaceElement,tmpReplace);
+        }
+
+        replaceElement.appendTail(tmpReplace);
+        return tmpReplace;
+    }
+
     protected Object getMetadata(@NonNull String key){
         return getMetadata(key,metadataGlobal,tomlMetadata);
     }
 
     private String allMetadataToHtml(){
         StringBuilder res=new StringBuilder();
-        for(TomlParseResult curMetadata:tomlMetadata){
+        for(TomlTable curMetadata:tomlMetadata){
             res.append(metadataToHtml(curMetadata));
         }
         return res.toString();
@@ -91,30 +104,34 @@ public class HtmlTemplate implements IHtmlTemplate {
     }
 
     public String apply() throws IOException {
-        Matcher matcher  = Pattern.compile("\\{\\{(.*?)\\}\\}").matcher(templateContent);
-        StringBuffer result = new StringBuffer(templateContent.length());
-        while (matcher.find()){
-            String currentMatch = matcher.group(1).trim();
-            //Process current match then append it
-            if("content".equalsIgnoreCase(currentMatch.trim())){
-                currentMatch = md2HtmlContent;
+        return matchAndReplace("\\{\\{(.*?)\\}\\}",templateContent, this::applyHtmlTemplate).toString();
+    }
+
+    private void applyHtmlTemplate(Matcher matcher, StringBuilder result){
+        String currentMatch = matcher.group(1).trim();
+        //Process current match then append it
+        if("content".equalsIgnoreCase(currentMatch.trim())){
+            currentMatch = md2HtmlContent;
+        }else{
+            String[] splittedDot = currentMatch.split("[ ]*\\.[ ]*");
+            if(splittedDot.length>=1 && "metadata".equalsIgnoreCase(splittedDot[0].trim())){
+                currentMatch = metadataCase(splittedDot);
             }else{
-                String[] splittedDot = currentMatch.split("[ ]*\\.[ ]*");
-                if(splittedDot.length>=1 && "metadata".equalsIgnoreCase(splittedDot[0].trim())){
-                    currentMatch = metadataCase(splittedDot);
-                }else{
-                    String[] splittedSpace = currentMatch.split("[ ]+");
-                    if(splittedDot.length>1 && "include".equalsIgnoreCase(splittedSpace[0].trim())){
+                String[] splittedSpace = currentMatch.split("[ ]+");
+                if(splittedDot.length>1 && "include".equalsIgnoreCase(splittedSpace[0].trim())){
+                    try {
                         currentMatch = includeCase(splittedSpace);
+                    }
+                    catch(IOException ioe)
+                    {
+                        logger.warning("During applyHtmlTemplate : " + ioe.getMessage());
+                        currentMatch = "";
                     }
                 }
             }
-            //Append
-            matcher.appendReplacement(result, Matcher.quoteReplacement(currentMatch));
         }
-        matcher.appendTail(result);
-        return result.toString();
-
+        //Append
+        matcher.appendReplacement(result, Matcher.quoteReplacement(currentMatch));
     }
 
     private String includeCase(@NonNull String[] splittedSpace) throws IOException {

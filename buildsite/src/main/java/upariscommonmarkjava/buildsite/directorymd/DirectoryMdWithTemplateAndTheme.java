@@ -6,7 +6,6 @@ import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.buildsite.theme.Theme;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

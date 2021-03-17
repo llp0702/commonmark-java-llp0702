@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class Theme implements ITheme {
-    private final static Logger logger =Logger.getLogger("Theme");
+    private static final Logger logger = Logger.getLogger("Theme");
     @Getter
     private final List<Path> staticPaths;
 

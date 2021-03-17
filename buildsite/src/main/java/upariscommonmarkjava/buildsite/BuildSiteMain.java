@@ -1,14 +1,11 @@
 package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
-
-import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
@@ -24,7 +21,7 @@ public class BuildSiteMain {
             if( line.hasOption("h")){
                 help();
             }else{
-                String current_directory = System.getProperty("user.dir");
+                String currentDirectory = System.getProperty("user.dir");
                 IDirectoryMd directoryMd;
                 if(line.hasOption("i"))
                 {
@@ -32,7 +29,7 @@ public class BuildSiteMain {
                 }
                 else
                 {
-                    directoryMd = DirectoryMd.open(current_directory);
+                    directoryMd = DirectoryMd.open(currentDirectory);
                 }
 
                 IDirectoryHtml directoryHtml = directoryMd.generateHtml();
@@ -41,7 +38,7 @@ public class BuildSiteMain {
                     directoryHtml.save(Paths.get(line.getOptionValue("o")));
                 }
                 else{
-                    directoryHtml.save(Paths.get(current_directory,"_output"));
+                    directoryHtml.save(Paths.get(currentDirectory,"_output"));
                 }
             }
         }

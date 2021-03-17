@@ -5,9 +5,8 @@ import org.commonmark.Extension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.tomlj.TomlParseResult;
+import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
-import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.HtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
@@ -76,11 +75,11 @@ public class ConverterMd2Html implements IConverterMd2Html {
     }
 
     private String applyTemplateIfPresent(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
-        List<TomlParseResult> metaDataLocal = cmFile.getTomlMetadataLocal();
+        List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
         Path template = templateFiles.stream()
                 .filter(x -> "default.html".equals(x.getFileName().toString()))
                 .findAny().orElse(null);
-        for (TomlParseResult metaData : metaDataLocal) {
+        for (TomlTable metaData : metaDataLocal) {
             if (metaData != null) {
                 String curRes = metaData.getString("template");
                 if (curRes != null && !curRes.isEmpty() && !curRes.isBlank()) {

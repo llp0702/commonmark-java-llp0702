@@ -3,13 +3,13 @@ package upariscommonmarkjava.md2html.implementations.extensions.toml;
 import org.commonmark.node.AbstractVisitor;
 import org.commonmark.node.CustomNode;
 import org.tomlj.Toml;
-import org.tomlj.TomlParseResult;
+import org.tomlj.TomlTable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TomlVisitor extends AbstractVisitor {
-    private List<TomlParseResult> data=new ArrayList<>();
+    private List<TomlTable> data=new ArrayList<>();
 
     @Override
     public void visit(CustomNode customNode) {
@@ -20,7 +20,7 @@ public class TomlVisitor extends AbstractVisitor {
         }
     }
 
-    public List<TomlParseResult> getData() {
+    public List<TomlTable> getData() {
         return data;
     }
 }

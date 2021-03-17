@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.tomlj.TomlParseResult;
+import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 
 import java.io.IOException;
@@ -12,9 +12,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Builder
 public class CMFile implements ICMFile {
@@ -31,7 +29,7 @@ public class CMFile implements ICMFile {
 
 
     @Getter @Setter
-    List<TomlParseResult> tomlMetadataLocal;
+    List<TomlTable> tomlMetadataLocal;
 
     @Override
     public Reader getReader(){
@@ -40,7 +38,7 @@ public class CMFile implements ICMFile {
 
     @Override
     public boolean isDraft() {
-        for(TomlParseResult metadataSet:tomlMetadataLocal){
+        for(TomlTable metadataSet:tomlMetadataLocal){
             if(metadataSet==null)continue;
             Boolean isDraft = metadataSet.getBoolean("draft");
             if(isDraft != null && isDraft ){
