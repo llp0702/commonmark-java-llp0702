@@ -6,18 +6,18 @@ import org.tomlj.TomlTable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuperBuilder
 public class AdvancedHtmlTemplate extends HtmlTemplate {
     private static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
-    private static final String PATTERN_IF_ELSE = "\\{%[ ]*if[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endif[ ]*%\\}";
-    private static final String PATTERN_IF = "\\{%[ ]*if[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endif[ ]*%\\}";
+    private static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
+    private static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
 
     @Override
     public String apply() {
         this.replace(PATTERN_FOR,this::replaceFor);
         this.replace(PATTERN_IF_ELSE,this::replaceIfElse);
-        this.replace(PATTERN_IF,this::replaceIf);
         return super.apply();
     }
 
@@ -57,36 +57,35 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
                         m -> "{{ metadata" + m.group(1).trim() + " }}"));
     }
 
-    private boolean isA(final String variable, final String value) {
-        return getMetadata(variable).toString().equals(value);
-    }
+    private boolean isTrue(final String variable) {
+        final String tomlString = getMetadata(variable).toString();
 
-    private boolean isBoolean(final String cond) {
-        return isA(cond,"true") || isA(cond,"false");
-    }
-
-    private String replaceIfStatement(final String statement, final String cond) {
-        return isA(cond, "true") ? statement : "";
-    }
-
-    private String replaceElseStatement(final String statement, final String cond) {
-        return isA(cond, "false") ? statement : "";
-    }
-
-    private String replaceIf(final Matcher matcher) {
-        final String cond = matcher.group(1).trim();
-        final String ifStatement = matcher.group(2).trim();
-
-        if(!isBoolean(cond))
+        if(!tomlString.equals("true") && !tomlString.equals("false"))
             logger.warning("The value is not a boolean");
 
-        return replaceIfStatement(ifStatement,cond);
+        return tomlString.equals("true");
     }
 
     private String replaceIfElse(final Matcher matcher) {
-        final String cond = matcher.group(1).trim();
-        final String elseStatement = matcher.group(4).trim();
+        //LE IF est Vrai
+        if(isTrue(matcher.group(1).trim()))
+            return matcher.group(2).trim();
 
-        return replaceIf(matcher) + replaceElseStatement(elseStatement,cond);
+        if(matcher.groupCount() >= 3 && matcher.group(3) != null) {
+            final Matcher matchElseIf = Pattern.compile(PATTERN_ELSEIF).matcher(matcher.group(3));
+            while(matchElseIf.find())
+            {
+                //ELSEIF Vrai
+                if(isTrue(matchElseIf.group(1).trim()))
+                    return matchElseIf.group(2).trim();
+            }
+        }
+
+        //LE ELSE est Vrai
+        if(matcher.groupCount() >= 4 && matcher.group(4) != null)   //ELSE
+            return matcher.group(5).trim();
+
+        //Cas aucun vrai et pas de else
+        return "";
     }
 }
