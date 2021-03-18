@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 
 @SuperBuilder
 public class HtmlTemplate implements IHtmlTemplate {
+    private static final String PATTERN_VAR = "\\{\\{(.*?)\\}\\}";
+
     public static final Logger logger = Logger.getLogger("Html Template logger");
 
     protected String md2HtmlContent;
@@ -31,11 +33,15 @@ public class HtmlTemplate implements IHtmlTemplate {
     protected List<Path> templates;
 
     public String apply() {
-        return matchAndReplace("\\{\\{(.*?)\\}\\}", templateContent, this::applyHtmlTemplate);
+        replace(PATTERN_VAR, this::applyHtmlTemplate);
+        return this.templateContent;
     }
 
-    protected static String matchTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content)
-    {
+    protected void replace(final String Pattern, final Function<Matcher,String> fun) {
+        this.templateContent = matchAndReplace(Pattern, this.templateContent,fun);
+    }
+
+    protected static String matchTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
         return HtmlTemplate.builder()
                 .md2HtmlContent(md2HtmlContent)
                 .metadataGlobal(metadataGlobal)
@@ -44,8 +50,7 @@ public class HtmlTemplate implements IHtmlTemplate {
                 .templates(templates).build().apply();
     }
 
-    public static Object getMetadata(@NonNull String key,ITOMLFile metadataGlobal,List<TomlTable> tomlMetadata)
-    {
+    public static Object getMetadata(@NonNull String key,ITOMLFile metadataGlobal,List<TomlTable> tomlMetadata) {
         for(TomlTable curMetadata:tomlMetadata){
             if(curMetadata==null)continue;
             Object curObject = curMetadata.get(key);
