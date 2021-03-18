@@ -1,6 +1,5 @@
 package upariscommonmarkjava;
 
-import implementations.App2;
 import org.apache.commons.cli.*;
 import upariscommonmarkjava.buildsite.BuildSiteMain;
 import upariscommonmarkjava.http_serv.HttpMain;
