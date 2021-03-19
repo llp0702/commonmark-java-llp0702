@@ -1,6 +1,7 @@
 package upariscommonmarkjava.md2html.implementations.metadata;
 
 import org.tomlj.TomlArray;
+import upariscommonmarkjava.md2html.interfaces.metadata.IMetaData;
 
 import java.util.ArrayList;
 import java.util.List;

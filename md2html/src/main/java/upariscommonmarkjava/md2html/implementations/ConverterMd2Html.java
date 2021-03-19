@@ -32,24 +32,21 @@ public class ConverterMd2Html implements IConverterMd2Html {
     private final Parser parser;
     private final HtmlRenderer htmlRenderer;
 
-    public Node parse(@NonNull ICMFile cmFile) throws IOException {
+    public Node parse(@NonNull final ICMFile cmFile) throws IOException {
         return parser.parseReader(cmFile.getReader());
     }
 
     @Override
-    public String parseAndConvert2Html(@NonNull ICMFile cmFile, ITOMLFile globalMetadata,
-                                       List<Path> templatesFiles) throws IOException {
+    public String parseAndConvert2Html(@NonNull final ICMFile cmFile, final ITOMLFile globalMetadata, final List<Path> templatesFiles) throws IOException {
         return convert2Html(cmFile, globalMetadata, templatesFiles);
-
     }
 
     @Override
-    public void parseAndConvert2HtmlAndSave(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, @NonNull Path destination,
-                                            List<Path> templatesFiles) throws IOException {
-        String resString = parseAndConvert2Html(cmFile, globalMetadata, templatesFiles);
+    public void parseAndConvert2HtmlAndSave(@NonNull final ICMFile cmFile, final ITOMLFile globalMetadata, @NonNull final Path destination, final List<Path> templatesFiles) throws IOException {
+        final String resString = parseAndConvert2Html(cmFile, globalMetadata, templatesFiles);
+
         if (!resString.isEmpty()) {
             Files.createDirectories(destination.getParent());
-
             Files.writeString(destination, resString, StandardOpenOption.WRITE,
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.CREATE);
@@ -60,18 +57,22 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>" + body + "</body></html>";
     }
 
-    private String convert2Html(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles) throws IOException {
-        Node resNode = parse(cmFile);
-        TomlVisitor t = new TomlVisitor();
+    private String convert2Html(@NonNull final ICMFile cmFile, final ITOMLFile globalMetadata, final List<Path> templateFiles) throws IOException {
+        final Node resNode = parse(cmFile);
+        final TomlVisitor t = new TomlVisitor();
+
         resNode.accept(t);
         cmFile.setTomlMetadataLocal(t.getData());
-        if (cmFile.isDraft()) return "";
-        String htmlContent = htmlRenderer.render(resNode);
-        if (templateFiles == null || templateFiles.isEmpty()) {
+
+        if (cmFile.isDraft())
+            return "";
+
+        final String htmlContent = htmlRenderer.render(resNode);
+
+        if (templateFiles == null || templateFiles.isEmpty())
             return wrapHtmlBody(htmlContent);
-        } else {
-            return applyTemplateIfPresent(cmFile, globalMetadata, templateFiles, htmlContent);
-        }
+
+        return applyTemplateIfPresent(cmFile, globalMetadata, templateFiles, htmlContent);
     }
 
     private static Optional<Path> searchPathEqual(final List<Path> templateFiles, final String pattern) {
@@ -82,7 +83,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return templateFiles.stream().filter(x -> x.normalize().toString().endsWith(pattern)).findAny();
     }
 
-    private String applyTemplateIfPresent(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
+    private String applyTemplateIfPresent(@NonNull final ICMFile cmFile, final ITOMLFile globalMetadata, final List<Path> templateFiles, final String htmlContent) throws IOException {
         final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
         Optional<Path> template = searchPathEqual(templateFiles,"default.html");
 
@@ -101,7 +102,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         if (template.isEmpty()) {
             return wrapHtmlBody(htmlContent);
         } else {
-            return AdvancedHtmlTemplate.buildTemplate(htmlContent,globalMetadata,metaDataLocal,templateFiles,Files.readString(template.get()));
+            return new AdvancedHtmlTemplate(htmlContent,globalMetadata,metaDataLocal,templateFiles,Files.readString(template.get())).apply();
         }
     }
 }

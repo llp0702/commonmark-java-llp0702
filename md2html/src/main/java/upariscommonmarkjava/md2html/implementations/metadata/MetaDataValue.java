@@ -1,11 +1,14 @@
 package upariscommonmarkjava.md2html.implementations.metadata;
 
+import upariscommonmarkjava.md2html.interfaces.metadata.IMetaData;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class MetaDataValue implements IMetaData {
-
-    Object value;
+    public static final Logger logger = Logger.getLogger("MetaDataValue logger");
+    final Object value;
 
     public MetaDataValue(Object value) {
         this.value = value;
@@ -18,7 +21,7 @@ public class MetaDataValue implements IMetaData {
 
     @Override
     public List<Object> toList() {
-        System.err.println("Not iterable ");
+        logger.warning("Not iterable ");
         return new ArrayList<>();
     }
 }

@@ -2,7 +2,7 @@ package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
 import lombok.NonNull;
 import org.tomlj.TomlTable;
-import upariscommonmarkjava.md2html.implementations.metadata.IMetaData;
+import upariscommonmarkjava.md2html.interfaces.metadata.IMetaData;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import upariscommonmarkjava.md2html.interfaces.extensions.htmltemplate.IHtmlTemplate;
 
@@ -22,13 +22,14 @@ public class HtmlTemplate implements IHtmlTemplate {
 
     public static final Logger logger = Logger.getLogger("Html Template logger");
 
-    protected String md2HtmlContent;
-    protected ITOMLFile metadataGlobal;
-    protected List<TomlTable> tomlMetadata;
-    protected List<Path> templates;
+    protected final String md2HtmlContent;
+    protected final ITOMLFile metadataGlobal;
+    protected final List<TomlTable> tomlMetadata;
+    protected final List<Path> templates;
+
     protected String templateContent;
 
-    protected HtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content){
+    protected HtmlTemplate(final String md2HtmlContent, final ITOMLFile metadataGlobal, final List<TomlTable> tomlMetadata, final List<Path> templates, final String content){
         this.md2HtmlContent = md2HtmlContent;
         this.metadataGlobal = metadataGlobal;
         this.tomlMetadata = tomlMetadata;
@@ -45,13 +46,9 @@ public class HtmlTemplate implements IHtmlTemplate {
         this.templateContent = matchAndReplace(Pattern, this.templateContent,fun);
     }
 
-    public static String buildTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
-        return new HtmlTemplate(md2HtmlContent,metadataGlobal,tomlMetadata,templates,content).apply();
-    }
-
-    protected static String matchAndReplace(String pattern, String innerContent, Function<Matcher,String> replace) {
-        Matcher replaceElement = Pattern.compile(pattern).matcher(innerContent);
-        StringBuilder tmpReplace = new StringBuilder(innerContent.length());
+    protected static String matchAndReplace(final String pattern, final String innerContent, final Function<Matcher,String> replace) {
+        final Matcher replaceElement = Pattern.compile(pattern).matcher(innerContent);
+        final StringBuilder tmpReplace = new StringBuilder(innerContent.length());
 
         while(replaceElement.find())
             replaceElement.appendReplacement(tmpReplace, Matcher.quoteReplacement(replace.apply(replaceElement)));
@@ -60,7 +57,7 @@ public class HtmlTemplate implements IHtmlTemplate {
         return tmpReplace.toString();
     }
 
-    protected Optional<IMetaData> getMetadata(@NonNull String key){
+    protected Optional<IMetaData> getMetadata(@NonNull final String key){
         for(TomlTable curMetadata : tomlMetadata)
         {
             if(curMetadata.contains(key))
@@ -77,7 +74,7 @@ public class HtmlTemplate implements IHtmlTemplate {
     }
 
     private String allMetadataToHtml(){
-        StringBuilder res = new StringBuilder();
+        final StringBuilder res = new StringBuilder();
 
         for(TomlTable curMetadata:tomlMetadata)
             res.append( IMetaData.buildMetaData(curMetadata).toHtml());
@@ -85,7 +82,7 @@ public class HtmlTemplate implements IHtmlTemplate {
         return res.toString();
     }
 
-    private String applyHtmlTemplate(Matcher matcher){
+    private String applyHtmlTemplate(final Matcher matcher){
         final String currentMatch = matcher.group(1).trim();
 
         //Process current match then append it
@@ -103,10 +100,10 @@ public class HtmlTemplate implements IHtmlTemplate {
         return currentMatch;
     }
 
-    private String includeCase(@NonNull String[] splittedSpace) {
-        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
+    private String includeCase(@NonNull final String[] splittedSpace) {
+        final String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
 
-        Optional<Path> toInclude = this.templates.stream().filter(x -> toIncludeName.equals(x.getFileName().toString())).findAny();
+        final Optional<Path> toInclude = this.templates.stream().filter(x -> toIncludeName.equals(x.getFileName().toString())).findAny();
 
         if(toInclude.isEmpty())
            return "";
@@ -114,20 +111,21 @@ public class HtmlTemplate implements IHtmlTemplate {
         try
         {
             final String content = Files.readString(toInclude.get());
-            return buildTemplate(md2HtmlContent,metadataGlobal,tomlMetadata,templates,content);
+            return new HtmlTemplate(md2HtmlContent,metadataGlobal,tomlMetadata,templates,content).apply();
         }
         catch(IOException ioe) {
             logger.warning("During include : " + ioe.getMessage());
-            return "";
         }
+        return "";
     }
 
-    private String metadataCase(@NonNull String[] splittedDot) {
+    private String metadataCase(@NonNull final String[] splittedDot) {
         if(splittedDot.length == 1)
             return allMetadataToHtml();
 
-        String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
-        Optional<IMetaData> currentMetadata = getMetadata(metadataSelected);
+        final String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
+        final Optional<IMetaData> currentMetadata = getMetadata(metadataSelected);
+
         if(currentMetadata.isPresent())
             return currentMetadata.get().toHtml();
         else

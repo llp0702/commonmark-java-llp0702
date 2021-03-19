@@ -16,12 +16,10 @@ import java.nio.file.Path;
 @Builder
 public class TomlFile implements ITOMLFile {
     @Getter
-    private Reader reader;
+    private final Reader reader;
     @Getter
     @Setter
     private TomlParseResult data;
-
-
 
     public static TomlFile fromString(@NonNull final String cmString) throws IOException {
         return TomlFile.builder().reader(new StringReader(cmString)).build();
@@ -34,6 +32,4 @@ public class TomlFile implements ITOMLFile {
     public void parse() throws IOException {
         data = Toml.parse(reader);
     }
-
-
 }
