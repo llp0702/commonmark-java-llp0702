@@ -1,18 +1,27 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
-import lombok.experimental.SuperBuilder;
-import org.tomlj.TomlArray;
 import org.tomlj.TomlTable;
-import java.util.ArrayList;
+import upariscommonmarkjava.md2html.implementations.metadata.IMetaData;
+import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
+
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuperBuilder
 public class AdvancedHtmlTemplate extends HtmlTemplate {
     private static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
     private static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
     private static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
+
+    protected AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
+        super(md2HtmlContent, metadataGlobal, tomlMetadata, templates, content);
+    }
+
+    public static String buildTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
+        return new AdvancedHtmlTemplate(md2HtmlContent,metadataGlobal,tomlMetadata,templates,content).apply();
+    }
 
     @Override
     public String apply() {
@@ -21,54 +30,48 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
         return super.apply();
     }
 
-    private List<Object> getIterableTomlList(Object elementObject) {
-        final List<Object> l = new ArrayList<>();
-
-        if (elementObject instanceof TomlArray)
-            l.addAll(((TomlArray) elementObject).toList());
-        else if(elementObject instanceof TomlTable)
-            l.addAll(((TomlTable) elementObject).toMap().values());
-        else
-            logger.warning("Not iterable ");
-
-        return l;
-    }
-    
     private String replaceFor(final Matcher matcher) {
         final String element = matcher.group(1).trim();
-        final String array = matcher.group(2).trim();
+        final String iterable = matcher.group(2).trim();
         final String innerContent = matcher.group(3).trim();
 
         final StringBuilder sb = new StringBuilder(innerContent.length());
 
-        for (final Object tomlObject : getIterableTomlList(getMetadata(array))) {
-            sb.append(tomlObject instanceof TomlTable ?
+        getMetadata(iterable).ifPresent(metaData -> {
+            for (final Object tomlObject : metaData.toList()) {
+                sb.append(tomlObject instanceof TomlTable ?
                     matchForTomlTable(element, innerContent, (TomlTable) tomlObject) :
                     matchAndReplace("\\{\\{[ ]*" + element + "[ ]*\\}\\}", innerContent ,
                             m -> tomlObject.toString()));
-        }
+            }
+        });
 
         return sb.toString();
     }
 
     private String matchForTomlTable(final String element, final String innerContent, final TomlTable table) {
-        return matchTemplate(md2HtmlContent,metadataGlobal,List.of(table),this.templates,
+        return buildTemplate(md2HtmlContent,metadataGlobal,List.of(table),this.templates,
                 matchAndReplace("\\{\\{[ ]*" + element + "(\\.[^ ]+?)[ ]*\\}\\}", innerContent,
                         m -> "{{ metadata" + m.group(1).trim() + " }}"));
     }
 
-    private boolean isTrue(final String variable) {
-        final String tomlString = getMetadata(variable).toString();
+    private boolean evalBoolean(final String variable) {
+        Optional<IMetaData> metaDataOptional = getMetadata(variable);
+        if(metaDataOptional.isEmpty()) {
+            logger.warning("The value is not a boolean");
+            return false;
+        }
 
-        if(!tomlString.equals("true") && !tomlString.equals("false"))
+        final String content = metaDataOptional.get().toHtml();
+        if (!content.equals("true") && !content.equals("false"))
             logger.warning("The value is not a boolean");
 
-        return tomlString.equals("true");
+        return content.equals("true");
     }
 
     private String replaceIfElse(final Matcher matcher) {
         //LE IF est Vrai
-        if(isTrue(matcher.group(1).trim()))
+        if(evalBoolean(matcher.group(1).trim()))
             return matcher.group(2).trim();
 
         if(matcher.groupCount() >= 3 && matcher.group(3) != null) {
@@ -76,7 +79,7 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
             while(matchElseIf.find())
             {
                 //ELSEIF Vrai
-                if(isTrue(matchElseIf.group(1).trim()))
+                if(evalBoolean(matchElseIf.group(1).trim()))
                     return matchElseIf.group(2).trim();
             }
         }

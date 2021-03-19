@@ -12,7 +12,6 @@ import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
-import upariscommonmarkjava.md2html.interfaces.extensions.htmltemplate.IHtmlTemplate;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class ConverterMd2Html implements IConverterMd2Html {
@@ -74,30 +74,34 @@ public class ConverterMd2Html implements IConverterMd2Html {
         }
     }
 
+    private static Optional<Path> searchPathEqual(final List<Path> templateFiles, final String pattern) {
+        return templateFiles.stream().filter(x -> pattern.equals(x.getFileName().toString())).findAny();
+    }
+
+    private static Optional<Path> searchPathEndsWith(final List<Path> templateFiles, final String pattern) {
+        return templateFiles.stream().filter(x -> x.normalize().toString().endsWith(pattern)).findAny();
+    }
+
     private String applyTemplateIfPresent(@NonNull ICMFile cmFile, ITOMLFile globalMetadata, List<Path> templateFiles, String htmlContent) throws IOException {
-        List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
-        Path template = templateFiles.stream()
-                .filter(x -> "default.html".equals(x.getFileName().toString()))
-                .findAny().orElse(null);
+        final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
+        Optional<Path> template = searchPathEqual(templateFiles,"default.html");
+
         for (TomlTable metaData : metaDataLocal) {
             if (metaData != null) {
                 String curRes = metaData.getString("template");
                 if (curRes != null && !curRes.isEmpty() && !curRes.isBlank()) {
-                    template = templateFiles.stream().filter(x -> x.normalize().toString().endsWith(curRes))
-                            .findAny().orElse(null);
-                    if (template != null) break;
+                    template = searchPathEndsWith(templateFiles,curRes);
+
+                    if (template.isEmpty())
+                        break;
                 }
             }
         }
-        if (template == null) {
-            htmlContent = wrapHtmlBody(htmlContent);
-            return htmlContent;
+
+        if (template.isEmpty()) {
+            return wrapHtmlBody(htmlContent);
         } else {
-            IHtmlTemplate htmlTemplate = AdvancedHtmlTemplate.builder().md2HtmlContent(htmlContent)
-                    .metadataGlobal(globalMetadata).tomlMetadata(metaDataLocal)
-                    .templateContent(Files.readString(template))
-                    .templates(templateFiles).build();
-            return htmlTemplate.apply();
+            return AdvancedHtmlTemplate.buildTemplate(htmlContent,globalMetadata,metaDataLocal,templateFiles,Files.readString(template.get()));
         }
     }
 }
