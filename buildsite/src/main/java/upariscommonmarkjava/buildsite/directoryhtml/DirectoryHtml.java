@@ -103,7 +103,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         Files.createDirectories(outputPath.getParent());
 
         ICMFile cmFile = CMFile.fromPath(inputMdFile);
-        IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+        IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths);
         if(theme != null && theme.isValid()){
             for(Path themeTemplate: theme.getTemplatePaths()){
                 if(themeTemplate==null)continue;
@@ -113,7 +113,7 @@ public class DirectoryHtml implements IDirectoryHtml {
                 }
             }
         }
-        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, tomlOptions, outputPath, templatesPaths);
+        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         return outputPath;
     }
 
