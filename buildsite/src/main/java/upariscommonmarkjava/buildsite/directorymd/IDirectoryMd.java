@@ -9,5 +9,5 @@ public interface IDirectoryMd  {
     Path getBasePath();
     List<Path> getMdFilesPaths();
     List<Path> getStaticFilesPaths();
-    public IDirectoryHtml generateHtml();
+    IDirectoryHtml generateHtml();
 }

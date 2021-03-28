@@ -1,13 +1,7 @@
 package upariscommonmarkjava.md2html;
 
-import lombok.AllArgsConstructor;
-import nu.validator.validation.SimpleDocumentValidator;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 

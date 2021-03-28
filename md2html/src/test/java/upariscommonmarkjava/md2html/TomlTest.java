@@ -1,8 +1,6 @@
 package upariscommonmarkjava.md2html;
 
 import org.junit.jupiter.api.Test;
-import org.tomlj.TomlTable;
-import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
 
 import java.io.IOException;

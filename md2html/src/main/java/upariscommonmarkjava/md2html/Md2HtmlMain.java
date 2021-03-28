@@ -22,7 +22,7 @@ public class Md2HtmlMain {
         Options options = md2htmlMainOptions();
         CommandLineParser parser = new DefaultParser();
         try {
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse( options, args, false );
             if( line.hasOption("h")){
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "ssg build [filename] [Options]", options );

@@ -78,12 +78,14 @@ public class SsgMain {
                 Md2HtmlMain.main(args);
             }
         }else if(command.equals(SERVE)){
-            HttpMain.main(args);
+            Options acceptedOptions = BuildSiteMain.buildsiteMainOptions();
+            for(Option o : HttpMain.serveMainOptions().getOptions())acceptedOptions.addOption(o);
 
+            BuildSiteMain.main(args, acceptedOptions);
+            HttpMain.main(args, acceptedOptions);
+        }else{
+            BuildSiteMain.main(args);
         }
-            else{
-                BuildSiteMain.main(args);
-            }
 
 
     }

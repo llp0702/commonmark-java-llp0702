@@ -1,26 +1,24 @@
 package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
-
-import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 public class BuildSiteMain {
     public static void main(String[] args) {
+        main(args,  buildsiteMainOptions());
+    }
+    public static void main(String[] args, Options options){
         Logger logger = Logger.getAnonymousLogger();
-        // create Options object
-        Options options = buildsiteMainOptions();
         CommandLineParser parser = new DefaultParser();
 
         try {
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse( options, args, false);
             if( line.hasOption("h")){
                 help();
             }else{
@@ -53,7 +51,6 @@ public class BuildSiteMain {
             exp.printStackTrace();
         }
     }
-
     public static void help() {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp( "ssg build [Options]", buildsiteMainOptions());

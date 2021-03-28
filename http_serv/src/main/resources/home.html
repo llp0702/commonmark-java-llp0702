@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <div id="menu_nav">
+            <div id="inp_files"></div>
+            <div id="out_files"></div>
+        </div>
+
+        <div id="edit_div">
+
+        </div>
+
+        <div id="show_div">
+            <button></button>
+        </div>
+    </body>
+    <script type="text/javascript">
+        function httpGet(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+            xmlHttp.send( null );
+            return xmlHttp.responseText;
+        }
+        jsonInpFiles = JSON.parse(httpGet("http://localhost:8080/getInp"));
+        let res = "<ul>";
+        let i = 0;
+        for(let x of jsonInpFiles){
+            res+="<li id='li_inp_"+i+">"+x['fileName']+"</li>"
+        }
+        res += "</ul>"
+        Document.getElementById("inp_files").innerHTML = res;
+
+        while(i>0){
+            Document.getElementById("li_inp_"+i).onclick = event=>{
+            }
+            i--;
+        }
+
+    </script>
+</html>
