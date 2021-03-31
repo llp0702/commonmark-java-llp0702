@@ -39,12 +39,12 @@ public class ConverterMd2Html implements IConverterMd2Html {
     }
 
     public ConverterMd2Html(final ITOMLFile globalMetadata){
-        this(globalMetadata,new ArrayList());
+        this(globalMetadata,new ArrayList<>());
     }
 
     public ConverterMd2Html() {
         this.globalMetadata = Optional.empty();
-        this.templateFiles = new ArrayList();
+        this.templateFiles = new ArrayList<>();
     }
 
     @Override

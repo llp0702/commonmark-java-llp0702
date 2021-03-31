@@ -34,14 +34,14 @@ class HtmlTemplateTest {
 
     private String getResult(final String testName)
     {
-        ArrayList<Path> lp = new ArrayList();
+        final ArrayList<Path> lp = new ArrayList();
         lp.add(Paths.get(directory, testName + "/default.html"));
         return result(lp);
     }
 
     private String getResultWith(final String testName,final String templateTest)
     {
-        ArrayList<Path> lp = new ArrayList();
+        final ArrayList<Path> lp = new ArrayList();
         lp.add(Paths.get(directory, testName + "/default.html"));
         lp.add(Paths.get(directory, testName + "/" + templateTest + ".html"));
         return result(lp);
@@ -60,13 +60,10 @@ class HtmlTemplateTest {
         }
     }
 
-
     @Test
-    public void testHtmlTemplate() throws IOException
+    void testHtmlTemplate() throws IOException
     {
         assertEquals("test include",getResultWith("testInclude", "about"));
-
-
         assertEquals("<ul><li>val : test_1</li><li>test2 : false</li><li>test : true</li><li>tab : <ul><li>1</li><li>2</li><li>3</li></ul></li></ul>",getResult("testAll"));
 
         assertEquals("test_1",getResult("testVariable"));
@@ -74,7 +71,7 @@ class HtmlTemplateTest {
     }
 
     @Test
-    public void testAdvancedHtmlTemplate() throws IOException
+    void testAdvancedHtmlTemplate() throws IOException
     {
         assertEquals("test_3",getResult("testIf"));
         assertEquals("test_4",getResult("testNotIf"));
