@@ -1,9 +1,11 @@
 package upariscommonmarkjava.md2html;
 
 import org.apache.commons.io.input.ReaderInputStream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
+import upariscommonmarkjava.md2html.implementations.TomlFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,41 +17,49 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-class ParserMd2HtmlTest {
+class ConvertMd2HtmlTest {
 
     public static final String CMEXAMPLE_1_MD = "cmexample1.md";
 
+    ConverterMd2Html converter;
+    CMFile cmFile;
+
+    @BeforeEach
+    public void init()
+    {
+        try {
+            cmFile = CMFile.fromString(RessourcesAccess.getResourceFile(CMEXAMPLE_1_MD));
+            converter = new ConverterMd2Html();
+        }catch (IOException ioe)
+        {
+            fail("Cannot open cm and toml");
+        }
+    }
+
     @Test
     void testConvertCm() throws Exception {
-        //Given
-        CMFile cmFile = CMFile.fromString(RessourcesAccess.getResourceFile(CMEXAMPLE_1_MD));
-        ConverterMd2Html converter = new ConverterMd2Html();
-
         //When
-        String result = converter.parseAndConvert2Html(cmFile);
+        final String result = converter.parseAndConvert2Html(cmFile);
 
         //Then
-        InputStream inputStreamResult = new ReaderInputStream(new StringReader(result));
-        HTML5Validator validator = new HTML5Validator(inputStreamResult);
+        final InputStream inputStreamResult = new ReaderInputStream(new StringReader(result));
+        final HTML5Validator validator = new HTML5Validator(inputStreamResult);
         assertTrue(validator.validate());
     }
 
     @Test
     void testParseAndConvert2HtmlAndSave() throws IOException {
         //Given
-        CMFile cmFile = CMFile.fromString(RessourcesAccess.getResourceFile(CMEXAMPLE_1_MD));
-        String dest = "/tmp/output.html";
-        Path destPath = Paths.get(dest);
-        ConverterMd2Html converter = new ConverterMd2Html();
-
+        final String dest = "/tmp/output.html";
+        final Path destPath = Paths.get(dest);
 
         //When
         converter.parseAndConvert2HtmlAndSave(cmFile, destPath);
 
         //Then
         assertTrue(Files.exists(destPath));
-        InputStream inputStreamResult = Files.newInputStream(destPath);
-        HTML5Validator validator = new HTML5Validator(inputStreamResult);
+        final InputStream inputStreamResult = Files.newInputStream(destPath);
+        final HTML5Validator validator = new HTML5Validator(inputStreamResult);
         assertTrue(validator.validate());
     }
 }
