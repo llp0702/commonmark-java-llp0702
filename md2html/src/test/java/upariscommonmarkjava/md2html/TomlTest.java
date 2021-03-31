@@ -15,8 +15,6 @@ class TomlTest {
     void testTOMLparsing() throws IOException {
 
         TomlFile tomlFile = TomlFile.fromString(RessourcesAccess.getResourceFile("site.toml"));
-        tomlFile.parse();
-
         assertEquals(4,tomlFile.getData().size());
     }
 }

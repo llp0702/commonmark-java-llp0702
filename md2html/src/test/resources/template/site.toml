@@ -1,0 +1,17 @@
+globalVal = "test_2"
+
+testGlobal = false
+
+tabGlobal = [0,1,2,3]
+
+[map]
+px = "v1"
+py = "v2"
+
+[listPoint]
+[listPoint.point1]
+x = "1"
+y = "2"
+[listPoint.point2]
+x = "0"
+y = "7"

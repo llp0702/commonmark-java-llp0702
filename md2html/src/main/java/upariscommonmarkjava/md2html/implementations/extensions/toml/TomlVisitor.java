@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TomlVisitor extends AbstractVisitor {
-    private List<TomlTable> data=new ArrayList<>();
+    private List<TomlTable> data = new ArrayList<>();
 
     @Override
     public void visit(CustomNode customNode) {

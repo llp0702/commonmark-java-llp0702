@@ -13,23 +13,30 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-@Builder
+
 public class TomlFile implements ITOMLFile {
     @Getter
     private final Reader reader;
-    @Getter
+
     @Setter
     private TomlParseResult data;
 
+    protected TomlFile(Reader reader) throws IOException
+    {
+        this.reader = reader;
+        data = Toml.parse(reader);
+    }
+
+    public TomlParseResult getData()
+    {
+        return data;
+    }
+
     public static TomlFile fromString(@NonNull final String cmString) throws IOException {
-        return TomlFile.builder().reader(new StringReader(cmString)).build();
+        return new TomlFile(new StringReader(cmString));
     }
 
     public static TomlFile fromPath(@NonNull final Path path) throws IOException {
-        return TomlFile.builder().reader(Files.newBufferedReader(path)).build();
-    }
-
-    public void parse() throws IOException {
-        data = Toml.parse(reader);
+        return new TomlFile(Files.newBufferedReader(path));
     }
 }

@@ -107,13 +107,15 @@ public class ConverterMd2Html implements IConverterMd2Html {
             return wrapHtmlBody(htmlContent);
         }
 
+
         String file = "";
         try{
             file = Files.readString(template.get());
         }
-        catch(IOException ioe) {
+        catch(IOException ioe){
             logger.warning(ioe.getMessage());
         }
+
         return new AdvancedHtmlTemplate(htmlContent,globalMetadata.get(),metaDataLocal,templateFiles,file).apply();
     }
 

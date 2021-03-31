@@ -77,9 +77,7 @@ public class DirectoryMd implements IDirectoryMd{
 
 
     private ITOMLFile initOption(Path toml) throws IOException {
-        TomlFile it = TomlFile.fromPath(toml);
-        it.parse();
-        return it;
+        return TomlFile.fromPath(toml);
     }
 
     protected void parcoursContent(Path contentBasePath){

@@ -13,7 +13,7 @@ public class RessourcesAccess {
         InputStream inputStreamInput = classLoader.getResourceAsStream(filename);
 
         if(inputStreamInput == null)
-            fail(filename+" not found");
+            fail(filename + " not found");
 
         return new String(inputStreamInput.readAllBytes());
     }
