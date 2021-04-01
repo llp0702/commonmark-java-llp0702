@@ -19,6 +19,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,7 +35,7 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
     protected List<Path> templatesPaths;
-    protected ITheme theme;
+    protected Optional<ITheme> theme;
     private final Path inputContentBasePath;
 
     public static DirectoryHtml create(@NonNull Path inputPath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths,
@@ -56,7 +57,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         this.templatesPaths = templatesPaths;
         if(this.templatesPaths ==null)this.templatesPaths = new ArrayList<>();
 
-        this.theme = theme;
+        this.theme = Optional.of(theme);
     }
 
 
@@ -79,12 +80,16 @@ public class DirectoryHtml implements IDirectoryHtml {
         copyStaticFiles(targetBasePath, this.staticFilesPaths, inputContentBasePath, true);
         //Convert Md to Html then Copy hrefs
         convertMd2HtmlAndCopyHrefs(targetBasePath);
-
-        if(theme != null && theme.isValid()){
-            //If there is template, we copy its static files
-            copyStaticFiles(targetBasePath, theme.getStaticPaths() ,theme.getBasePath().resolve("static"), false);
-
-        }
+        theme.ifPresent(t ->{
+            if(t.isValid()) {
+                try {
+                    copyStaticFiles(targetBasePath, t.getStaticPaths() ,t.getBasePath().resolve("static"), false);
+                } catch (IOException e) {
+                    logger.warning("Exception when trying to copy static files");
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
@@ -104,15 +109,17 @@ public class DirectoryHtml implements IDirectoryHtml {
 
         ICMFile cmFile = CMFile.fromPath(inputMdFile);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths);
-        if(theme != null && theme.isValid()){
-            for(Path themeTemplate: theme.getTemplatePaths()){
-                if(themeTemplate==null)continue;
-                if(this.templatesPaths.stream().noneMatch(templatePath->templatePath.getFileName()
-                        .equals(themeTemplate.getFileName()))){
-                    templatesPaths.add(themeTemplate);
+        theme.ifPresent(t->{
+            if(t.isValid()){
+                for(Path themeTemplate: t.getTemplatePaths()){
+                    if(themeTemplate==null)continue;
+                    if(this.templatesPaths.stream().noneMatch(templatePath->templatePath.getFileName()
+                            .equals(themeTemplate.getFileName()))){
+                        templatesPaths.add(themeTemplate);
+                    }
                 }
             }
-        }
+        });
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         return outputPath;
     }
