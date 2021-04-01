@@ -68,6 +68,6 @@ public class Md2HtmlMain {
         Path outputPath = Paths.get(outputDir+filenameOutput);
         ICMFile cmFile = CMFile.fromPath(inputPath);
         IConverterMd2Html converterMd2Html = new ConverterMd2Html();
-        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, null,outputPath, null);
+        converterMd2Html.parseAndConvert2HtmlAndSave(cmFile,outputPath);
     }
 }

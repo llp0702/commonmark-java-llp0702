@@ -1,46 +1,56 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
+import lombok.Getter;
+import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class DirectoryMdWithTemplate extends DirectoryMd {
-    protected final ArrayList<Path> pathsTemplates;
-    private final String pathsParentTemplate;
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
-    protected DirectoryMdWithTemplate(File toml, File content, Path templates) throws IOException{
+    @Getter
+    protected final List<Path> templatesPaths;
+
+    @Getter
+    private final Path templateBasePath;
+
+    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull Path content, Path templates) throws IOException{
         super(toml,content);
-        pathsTemplates = new ArrayList<>();
-        this.pathsParentTemplate = templates.toString();
-        parcoursTemplates(templates.toFile(),"");
+        this.templatesPaths = new ArrayList<>();
+        if(templates!=null) {
+            this.templateBasePath = templates;
+            parcoursTemplates(templates);
+        }else{
+            this.templateBasePath = null;
+        }
     }
-
-    protected void parcoursTemplates(File templates, String basePath){
-        if(templates == null) return;
-
-        File[] contentFiles = templates.listFiles();
-        if(contentFiles==null) return;
-
-        for(File file : contentFiles) {
-            if(file == null) continue;
-
-            if(file.isDirectory()) {
-                parcoursTemplates(file, basePath + "/" + file.getName());
-            }else{
-                pathsTemplates.add(Paths.get(pathsParentTemplate, basePath , file.getName()));
-            }
+    protected void parcoursTemplates(Path templateBasePath){
+        if(templateBasePath == null) return;
+        try(final Stream<Path> paths = Files.list(templateBasePath)){
+            paths.forEach(currentPath ->{
+                if(Files.isDirectory(currentPath)){
+                    parcoursTemplates(currentPath);
+                }else{
+                    this.templatesPaths.add(currentPath);
+                }
+            });
+        }catch (IOException e){
+            logger.warning("IOException during parcoursThemes");
         }
     }
 
     @Override
-    public IDirectoryHtml generateHtml()
-    {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, this.pathsTemplates);
+    public IDirectoryHtml generateHtml() {
+        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths, null);
     }
 
 }

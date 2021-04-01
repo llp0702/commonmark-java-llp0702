@@ -24,7 +24,6 @@ public class TomlBlockParser extends AbstractBlockParser implements ITomlBlockPa
         return block;
     }
 
-
     @Override
     public BlockContinue tryContinue(ParserState parserState) {
         final CharSequence line = parserState.getLine().getContent();

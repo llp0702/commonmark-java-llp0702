@@ -22,7 +22,7 @@ public class BuildSiteMain {
             if( line.hasOption("h")){
                 help();
             }else{
-                String current_directory = System.getProperty("user.dir");
+                String currentDirectory = System.getProperty("user.dir");
                 IDirectoryMd directoryMd;
                 if(line.hasOption("i"))
                 {
@@ -30,7 +30,7 @@ public class BuildSiteMain {
                 }
                 else
                 {
-                    directoryMd = DirectoryMd.open(current_directory);
+                    directoryMd = DirectoryMd.open(currentDirectory);
                 }
 
                 IDirectoryHtml directoryHtml = directoryMd.generateHtml();
@@ -39,7 +39,7 @@ public class BuildSiteMain {
                     directoryHtml.save(Paths.get(line.getOptionValue("o")));
                 }
                 else{
-                    directoryHtml.save(Paths.get(current_directory,"_output"));
+                    directoryHtml.save(Paths.get(currentDirectory,"_output"));
                 }
             }
         }
