@@ -21,7 +21,7 @@ before_script:
 
 build-and-deploy:
   only:
-    - tags
+    - main
   stage: build
   script: gradle build codeCoverageReport
   artifacts:
@@ -41,14 +41,14 @@ build-and-deploy:
 
 code-coverage-md2html 1/3:
   only:
-    - tags
+    - main
   stage: test
   image: alpine:latest
   script: cat md2html/build/reports/jacoco/test/html/index.html
 
 code-coverage-buildsite 2/3:
   only:
-    - tags
+    - main
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
