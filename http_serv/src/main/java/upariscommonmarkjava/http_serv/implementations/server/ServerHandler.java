@@ -1,5 +1,6 @@
 package upariscommonmarkjava.http_serv.implementations.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,44 +11,48 @@ import io.netty.util.CharsetUtil;
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static upariscommonmarkjava.http_serv.implementations.server.UtilConstants.*;
+
 //Code provenant en partie de la classe d'exemple HttpStaticFileHandler
 public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private static final Map<Pattern, BiFunction<ChannelHandlerContext,FullHttpRequest,Object>> routingTable = new HashMap<>();
-    public static final String CONTENT_TYPE = "Content-Type";
-    public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    private static final Map<Pattern, BiConsumer<ChannelHandlerContext,FullHttpRequest>> routingTable = new HashMap<>();
 
-    final SsgApi ssgApi;
+    private final SsgApi ssgApi;
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
-    private static final Pattern ALLOWED_FILE_NAME = Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
 
     public ServerHandler(final SsgApi ssgApi) {
         this.ssgApi = ssgApi;
         initRoutingTable();
     }
     private void initRoutingTable(){
-        routingTable.put(Pattern.compile("getInp"), (ctx, msg)->{
-            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            response.headers().set(CONTENT_TYPE, "text/json; charset=UTF-8");
-
-            //response.content().writeBytes();
-            ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-            ctx.flush();
-            return null;
+        routingTable.put(API_GET_INPUT_FILES_PATHS_URL, (ctx, msg)->{
+            try {
+                sendJson(ctx, ssgApi.getInputFiles());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
-
+        routingTable.put(API_GET_OUTPUT_FILES_PATHS_URL, (ctx, msg)->{
+            try {
+                sendJson(ctx, ssgApi.getOutputFiles());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
     }
     @Override
@@ -55,18 +60,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         messageReceived(ctx,msg);
     }
 
-    private HttpResponseStatus checkError(FullHttpRequest request) throws IOException {
+    private HttpResponseStatus checkError(FullHttpRequest request) {
         if (!request.decoderResult().isSuccess())return HttpResponseStatus.BAD_REQUEST;
-        if(request.method() != HttpMethod.GET)return  HttpResponseStatus.METHOD_NOT_ALLOWED;
-        String uri = request.uri();
-        Path path = sanitizeUri(uri, ssgApi.getOutputBasePath());
-        if(Files.isHidden(path) || !Files.exists(path)){
-            return HttpResponseStatus.NOT_FOUND;
-        }
         return null;
     }
 
-    public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest request) throws ParseException, IOException {
+    public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest request) throws IOException {
 
         HttpResponseStatus eventualError = checkError(request);
         if(eventualError != null) {
@@ -74,21 +73,30 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
             return;
         }
 
-        String uri = request.uri();
-        /*if("index.html".equals(uri)){
-            sendRegularFile(ctx, Path.of("http_serv/resources/index.html"));
-        }else{
-
-        }*/
-        Path filePath = sanitizeUri(uri, ssgApi.getOutputBasePath());
-
-        if (Files.isDirectory(filePath)) {
-            sendListing(ctx, filePath);
+        URI uri = URI.create(request.uri());
+        //Get home file
+        if(uri.getPath().startsWith("/index.html") || "/".equals(uri.getPath())){
+            sendRegularFile(ctx, PATH_INTO_HOME_HTML);
             return;
         }
-        //Is a regular file
-        sendRegularFile(ctx,  filePath);
+        //Get JS File
+        if(uri.getPath().startsWith("/home.js")){
+            sendRegularFile(ctx, PATH_INTO_HOME_JS);
+            return;
+        }
+        //Get simply a file
+        if(request.headers().contains(HEADER_GET_ANY_FILE) && "true".equals(request.headers().get(HEADER_GET_ANY_FILE)) ){
+            sendRegularFile(ctx, Paths.get(uri.getPath()));
+            return;
+        }
+
+        //REST API matching
+        routingTable.entrySet().stream().filter(entry->
+            entry.getKey().matcher(request.uri()).matches()
+        ).findFirst().ifPresent(entry-> entry.getValue().accept(ctx, request));
+        sendError(ctx,HttpResponseStatus.NOT_FOUND);
     }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
@@ -98,9 +106,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
     }
 
-    private Path sanitizeUri(String uri){
-        return sanitizeUri(uri, Paths.get(""));
-    }
     private Path sanitizeUri(String uri, Path relativeTo)throws IllegalArgumentException {
         uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
 
@@ -115,6 +120,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
                     INSECURE_URI.matcher(uri).matches()){
                 throw new IllegalArgumentException("Invalid uri");
             }else{
+                if(Paths.get(uri).startsWith(relativeTo)){
+                    return Paths.get(uri);
+                }
                 return  relativeTo.resolve(uri);
             }
         }
@@ -129,7 +137,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         ctx.flush();
     }
 
+    private  <T> void   sendJson(ChannelHandlerContext ctx, T object) throws IOException {
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        response.headers().set(CONTENT_TYPE, "text/json; charset=UTF-8");
 
+        response.content().writeBytes(mapper.writeValueAsBytes(object));
+        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.flush();
+    }
     private static void sendListing(ChannelHandlerContext ctx, Path dir) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -151,7 +166,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
                 if (Files.isReadable(curSubFilePath) &&
                         ALLOWED_FILE_NAME.matcher(curSubFilePath.getFileName().toString()).matches()) {
                     buf.append("<li><a href=\"")
-                            .append(curSubFilePath)
+                            .append(curSubFilePath.getFileName())
                             .append("\">")
                             .append(curSubFilePath.getFileName())
                             .append("</a>")

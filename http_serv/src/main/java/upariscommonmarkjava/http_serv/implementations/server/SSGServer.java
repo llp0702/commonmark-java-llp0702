@@ -7,10 +7,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SSGServer {
     Logger logger = Logger.getLogger("SSGServer");
     public static final int DEF_PORT = 8080;
@@ -27,8 +33,23 @@ public class SSGServer {
     public SSGServer(int port, Path inputBasePath,  Path outputBasePath){
         this.port = port;
         api = new SsgApi(inputBasePath, outputBasePath);
+        prepareHomeJs();
     }
 
+
+    private void prepareHomeJs(){
+        try{
+            Path homeJSPath = UtilConstants.PATH_INTO_HOME_JS;
+            String homeJSContent = Files.readString(homeJSPath).replace("@__PORT__@", String.valueOf(port));
+            final String regex = "const[ ]+BASE_PATH[ ]*=.*";
+            Files.writeString(
+                    homeJSPath,
+                    homeJSContent.replaceAll(regex, "const BASE_PATH = \"http://localhost:"+port+"\"")
+            );
+        }catch(IOException e){
+            logger.warning("Error when initializing home.html");
+        }
+    }
 
     public void run() throws InterruptedException{
 
