@@ -1,6 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-gradle clean build --no-daemon
 cp build/distributions/ssg-1.0-SNAPSHOT.tar .
 tar -xf ssg-1.0-SNAPSHOT.tar
 
@@ -12,15 +11,16 @@ if [ $? -ne 0 ]; then
 else
     echo "---------Help: Passed 1/2"
     pattern='usage: ssg <build \| help> \[args\] \[Options\].*build'
-    [[ $help_result =~ $patern ]]
-    if [${#BASH_REMATCH[0]} -gt 0]; then
+    [[ $help_result =~ $pattern ]]
+    if [ ${#BASH_REMATCH[0]} -gt 0 ]; then
         msg="---------Help: Passed 2/2"
         text='\e[0;32m $msg \e[m'
         echo $msg
     else
         err="FAILED 2/2 help command did not match the pattern"
         text='\e[0;31m $(err) \e[m'
-        echo $err
+        echo $text
+        exit 1
     fi
 fi
 echo "Beginning: Test minimal"
