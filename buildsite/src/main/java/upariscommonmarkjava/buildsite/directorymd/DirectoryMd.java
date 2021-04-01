@@ -8,10 +8,12 @@ import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -30,43 +32,54 @@ public class DirectoryMd implements IDirectoryMd{
 
     private final Logger logger = Logger.getLogger(getClass().getName());
 
+    public static Optional<File> findOptFileOrDirectory(final String name, final File[] files) {
+        return Arrays.stream(files).filter(x -> x.getName().equals(name)).findAny();
+    }
+
+    public static File findFileOrDirectory(final String name, final File[] files, final String errorMessage) throws  SiteFormatException {
+        return findOptFileOrDirectory(name,files).orElseThrow(() -> new SiteFormatException(errorMessage));
+    }
+
+    public static File[] findFiles(final File folder,final String errorMessage) throws  SiteFormatException
+    {
+        final File[] files = folder.listFiles();
+        if(files == null)
+            throw new SiteFormatException(errorMessage);
+        return files;
+    }
+
+    public static void isDirectory(File folder, String errorMessage) throws  SiteFormatException
+    {
+        if(!folder.isDirectory())
+            throw new SiteFormatException(errorMessage);
+    }
+
     public static DirectoryMd open(final String path) throws SiteFormatException {
-        File folder = new File(path);
-        if(!folder.isDirectory())throw new SiteFormatException("The file is not a folder");
+        final Path folder = Paths.get(path);
+        isDirectory(folder.toFile(), "The file is not a folder");
 
-        File[] files = folder.listFiles();
+        final File[] files = findFiles(folder.toFile(), "No files found");
 
-        if(files==null)throw new SiteFormatException("No files found");
+        final File toml = findFileOrDirectory("site.toml",files,"No Site.Toml found ! ");
+        final File content = findFileOrDirectory("content",files,"No content folder ! ");
 
-        Optional<File> optToml = Arrays.stream(files)
-                .filter(x -> x.getName().equals("site.toml")).findAny();
-        if(optToml.isEmpty())throw new SiteFormatException("No Site.Toml found ! ");
+        isDirectory(content, "Content is not a folder ! ");
 
-        Optional<File> optContent = Arrays.stream(files)
-                .filter(x -> x.getName().equals("content")).findAny();
-        if(optContent.isEmpty())throw new SiteFormatException("No content folder ! ");
-        if(!optContent.get().isDirectory())throw new SiteFormatException("Content is not a folder ! ");
-        File content = optContent.get();
-        File[] contentFiles = content.listFiles();
-        if(contentFiles==null)throw new SiteFormatException("Content is empty");
-        Optional<File> optIndex = Arrays.stream(contentFiles)
-                .filter(x -> x.getName().equals("index.md")).findAny();
-        if (optIndex.isEmpty())throw new SiteFormatException("No index.md found ! ");
+        final File[] contentFiles = findFiles(content, "Content is empty");
 
-        Optional<File> optTemplatesDir = Arrays.stream(files)
-                .filter(x->"templates".equals(x.getName())).findAny();
+        findFileOrDirectory("index.md",contentFiles,"No index.md found ! ");
 
-        Optional<File> optThemesDir = Arrays.stream(files).filter(x->"themes".equals(x.getName()))
-                .findAny();
+        final Optional<File> optTemplatesDir = findOptFileOrDirectory("templates",files);
+        final Optional<File> optThemesDir = findOptFileOrDirectory("themes",files);
 
         try {
             if(optThemesDir.isPresent()){
-                return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content.toPath(),
+                return new DirectoryMdWithTemplateAndTheme(toml.toPath(), content.toPath(),
                         optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
             }else if(optTemplatesDir.isPresent()){
-                return new DirectoryMdWithTemplate(optToml.get().toPath(), content.toPath(), optTemplatesDir.get().toPath());
+                return new DirectoryMdWithTemplate(toml.toPath(), content.toPath(), optTemplatesDir.get().toPath());
             }else{
-                return new DirectoryMd(optToml.get().toPath(), content.toPath());
+                return new DirectoryMd(toml.toPath(), content.toPath());
             }
         }
         catch (IOException ioe){

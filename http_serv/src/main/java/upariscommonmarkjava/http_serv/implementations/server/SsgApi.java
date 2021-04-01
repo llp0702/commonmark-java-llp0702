@@ -51,7 +51,4 @@ public class SsgApi {
             return o;
         }).collect(Collectors.toList());
     }
-
-    public void saveFile(){
-    }
 }

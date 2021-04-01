@@ -55,7 +55,7 @@ public class HttpMain {
         }
     }
 
-    private static void work(final Path input, final Path output, int port) throws Exception {
+    private static void work(final Path input, final Path output, int port) throws InterruptedException {
 
         SSGServer ssgServer = new SSGServer(port, input, output);
         ssgServer.run();

@@ -4,7 +4,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
-public class UtilConstants {
+public final class UtilConstants {
+    private UtilConstants(){}
+
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
