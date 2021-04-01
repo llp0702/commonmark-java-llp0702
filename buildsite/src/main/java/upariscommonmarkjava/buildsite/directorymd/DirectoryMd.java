@@ -40,16 +40,14 @@ public class DirectoryMd implements IDirectoryMd{
         return findOptFileOrDirectory(name,files).orElseThrow(() -> new SiteFormatException(errorMessage));
     }
 
-    public static File[] findFiles(final File folder,final String errorMessage) throws  SiteFormatException
-    {
+    public static File[] findFiles(final File folder,final String errorMessage) throws  SiteFormatException {
         final File[] files = folder.listFiles();
         if(files == null)
             throw new SiteFormatException(errorMessage);
         return files;
     }
 
-    public static void isDirectory(File folder, String errorMessage) throws  SiteFormatException
-    {
+    public static void isDirectory(final File folder, final String errorMessage) throws  SiteFormatException {
         if(!folder.isDirectory())
             throw new SiteFormatException(errorMessage);
     }
@@ -87,13 +85,11 @@ public class DirectoryMd implements IDirectoryMd{
         }
     }
 
-
-
-    private ITOMLFile initOption(Path toml) throws IOException {
+    private ITOMLFile initOption(final Path toml) throws IOException {
         return TomlFile.fromPath(toml);
     }
 
-    protected void parcoursContent(Path contentBasePath){
+    protected void parcoursContent(final Path contentBasePath){
         if(contentBasePath == null) return;
         try(final Stream<Path> paths = Files.list(contentBasePath)){
             paths.forEach(currentPath ->{
@@ -111,7 +107,7 @@ public class DirectoryMd implements IDirectoryMd{
 
     }
 
-    protected DirectoryMd(Path toml, Path content) throws IOException {
+    protected DirectoryMd(final Path toml,final Path content) throws IOException {
         this.contentBasePath = content;
         this.tomlOptions = initOption(toml);
         mdFilesPaths = new ArrayList<>();
@@ -119,24 +115,23 @@ public class DirectoryMd implements IDirectoryMd{
         parcoursContent(content);
     }
 
-
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                Collections.emptyList(), null );
+        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), Optional.empty());
     }
 
     @Override
     public List<ITheme> getThemes() {
-        return Collections.emptyList();
+        return new ArrayList<>();
     }
 
     @Override
     public List<Path> getTemplatesPaths() {
-        return Collections.emptyList();
+        return new ArrayList<>();
     }
 
     @Override
-    public Path getTemplateBasePath() {
-        return null;
+    public Optional<Path> getTemplateBasePath() {
+        return Optional.empty();
     }
 }
