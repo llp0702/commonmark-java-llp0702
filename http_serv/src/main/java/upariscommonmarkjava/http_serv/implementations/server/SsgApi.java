@@ -1,15 +1,13 @@
 package upariscommonmarkjava.http_serv.implementations.server;
 
 import lombok.Getter;
-import upariscommonmarkjava.http_serv.implementations.dto.FileDetails;
+import upariscommonmarkjava.http_serv.implementations.dto.FileDetailsDTO;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,19 +21,19 @@ public class SsgApi {
         this.inputBasePath = inputBasePath;
         this.outputBasePath = outputBasePath;
     }
-    public List<FileDetails> getInputFiles(){
+    public List<FileDetailsDTO> getInputFiles(){
         return this.getFilesArbo(inputBasePath).stream().map(i->{i.setInputFile(true);return i;})
                 .collect(Collectors.toList());
     }
 
-    private List<FileDetails> getFilesArbo(Path from){
-        final List<FileDetails> result = new ArrayList<>();
+    private List<FileDetailsDTO> getFilesArbo(Path from){
+        final List<FileDetailsDTO> result = new ArrayList<>();
         try(Stream<Path> inputSubFilesStream = Files.list(from)){
             inputSubFilesStream.forEach(inputFilePathCur->{
                 if(Files.isDirectory(inputFilePathCur)){
                     result.addAll(getFilesArbo(inputFilePathCur));
                 }else if(Files.isRegularFile(inputFilePathCur)){
-                    result.add(FileDetails.builder()
+                    result.add(FileDetailsDTO.builder()
                             .absolutePath(inputFilePathCur.toAbsolutePath().toString())
                             .name(inputFilePathCur.getFileName().toString())
                             .absoluteBaseInputPath(inputBasePath.toAbsolutePath().toString())
@@ -47,7 +45,7 @@ public class SsgApi {
             return new ArrayList<>();
         }
     }
-    public List<FileDetails> getOutputFiles(){
+    public List<FileDetailsDTO> getOutputFiles(){
         return getFilesArbo(outputBasePath).stream().map(o->{
             o.setInputFile(false);
             return o;

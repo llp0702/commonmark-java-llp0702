@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class FileDetails {
+public class FileDetailsDTO {
     private String absolutePath;
     private String name;
     private boolean isInputFile;
