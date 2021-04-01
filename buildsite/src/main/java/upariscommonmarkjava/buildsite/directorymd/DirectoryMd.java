@@ -4,17 +4,17 @@ import lombok.Getter;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.SiteFormatException;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
+import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class DirectoryMd implements IDirectoryMd{
     @Getter
@@ -26,11 +26,11 @@ public class DirectoryMd implements IDirectoryMd{
     protected final ITOMLFile tomlOptions;
 
     @Getter
-    protected final Path basePath;
+    protected final Path contentBasePath;
 
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
-    public static DirectoryMd open(final String path) throws SiteFormatException
-    {
+    public static DirectoryMd open(final String path) throws SiteFormatException {
         File folder = new File(path);
         if(!folder.isDirectory())throw new SiteFormatException("The file is not a folder");
 
@@ -56,64 +56,74 @@ public class DirectoryMd implements IDirectoryMd{
         Optional<File> optTemplatesDir = Arrays.stream(files)
                 .filter(x->"templates".equals(x.getName())).findAny();
 
-        try
-        {
-            return optTemplatesDir.isEmpty() ?
-            new DirectoryMd(optToml.get(), content) :
-            new DirectoryMdWithTemplate(optToml.get(), content, optTemplatesDir.get().toPath());
+        Optional<File> optThemesDir = Arrays.stream(files).filter(x->"themes".equals(x.getName()))
+                .findAny();
+
+        try {
+            if(optThemesDir.isPresent()){
+                return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content.toPath(),
+                        optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
+            }else if(optTemplatesDir.isPresent()){
+                return new DirectoryMdWithTemplate(optToml.get().toPath(), content.toPath(), optTemplatesDir.get().toPath());
+            }else{
+                return new DirectoryMd(optToml.get().toPath(), content.toPath());
+            }
         }
-        catch (IOException ioe)
-        {
+        catch (IOException ioe){
             throw new SiteFormatException("Error IOException : " + ioe.getMessage());
         }
     }
 
-    private ITOMLFile initOption(File toml) throws IOException
-    {
-        TomlFile it = TomlFile.fromPath(Paths.get(toml.getAbsolutePath()));
-        it.parse();
-        return it;
+
+
+    private ITOMLFile initOption(Path toml) throws IOException {
+        return TomlFile.fromPath(toml);
     }
 
-    protected void parcours(File content, String basePath){
-        if(content == null)
-            return;
-        File[] contentFiles = content.listFiles();
-        if(contentFiles==null)
-            return;
-
-        for(File file : contentFiles) {
-            if(file == null)
-                continue;
-
-            if(file.isDirectory())
-            {
-                parcours(file, basePath + file.getName() + "/");
-            }
-            else if (file.getName().endsWith(".md"))
-            {
-                mdFilesPaths.add(Paths.get(basePath,  file.getName()));
-            }
-            else
-            {
-                staticFilesPaths.add(Paths.get(basePath, file.getName()));
-            }
+    protected void parcoursContent(Path contentBasePath){
+        if(contentBasePath == null) return;
+        try(final Stream<Path> paths = Files.list(contentBasePath)){
+            paths.forEach(currentPath ->{
+                if(Files.isDirectory(currentPath)){
+                    parcoursContent(currentPath);
+                }else if (currentPath.getFileName().toString().endsWith(".md")) {
+                    mdFilesPaths.add(currentPath);
+                }else{
+                    staticFilesPaths.add(currentPath);
+                }
+            });
+        }catch (IOException e){
+            logger.warning("IOException during parcoursThemes");
         }
+
     }
 
-    protected DirectoryMd(File toml, File content) throws IOException
-    {
-        this.basePath = content.toPath();
+    protected DirectoryMd(Path toml, Path content) throws IOException {
+        this.contentBasePath = content;
         this.tomlOptions = initOption(toml);
         mdFilesPaths = new ArrayList<>();
         staticFilesPaths = new ArrayList<>();
-        parcours(content,"");
+        parcoursContent(content);
     }
 
 
+    public IDirectoryHtml generateHtml() {
+        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), null );
+    }
 
-    public IDirectoryHtml generateHtml()
-    {
-        return DirectoryHtml.create(this.basePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths, new ArrayList<>());
+    @Override
+    public List<ITheme> getThemes() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Path> getTemplatesPaths() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Path getTemplateBasePath() {
+        return null;
     }
 }

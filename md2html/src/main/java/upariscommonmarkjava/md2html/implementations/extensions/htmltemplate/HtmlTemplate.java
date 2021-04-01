@@ -1,10 +1,8 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
-import lombok.Builder;
-import org.tomlj.TomlArray;
-import org.tomlj.TomlInvalidTypeException;
-import org.tomlj.TomlParseResult;
+import lombok.NonNull;
 import org.tomlj.TomlTable;
+import upariscommonmarkjava.md2html.interfaces.metadata.IMetaData;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 import upariscommonmarkjava.md2html.interfaces.extensions.htmltemplate.IHtmlTemplate;
 
@@ -13,131 +11,124 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Builder
 public class HtmlTemplate implements IHtmlTemplate {
+    private static final String PATTERN_VAR = "\\{\\{(.*?)\\}\\}";
+
     public static final Logger logger = Logger.getLogger("Html Template logger");
 
-    String md2HtmlContent;
-    ITOMLFile metadataGlobal;
-    List<TomlParseResult> tomlMetadata;
-    String templateContent;
-    List<Path> templates;
+    protected final String md2HtmlContent;
+    protected final ITOMLFile metadataGlobal;
+    protected final List<TomlTable> tomlMetadata;
+    protected final List<Path> templates;
 
-    private Object getMetadata(String key){
-        for(TomlParseResult curMetadata:tomlMetadata){
-            if(curMetadata==null)continue;
-            Object curObject = curMetadata.get(key);
-            try{
-                if(curObject!=null){
-                    return curObject;
-                }
-            }catch(IllegalArgumentException| TomlInvalidTypeException e){
-                logger.warning("Exception when parsing key "+key+" : "+e);
-            }
-        }
-        if(metadataGlobal == null || metadataGlobal.getData() == null)return null;
-        try{
-            Object curObject = metadataGlobal.getData().get(key);
-            if(curObject!=null){
-                return curObject;
-            }
-        }catch(IllegalArgumentException| TomlInvalidTypeException e){
-            logger.warning("Exception when parsing key "+key+" : "+e);
-        }
-        return null;
+    protected String templateContent;
+
+    protected HtmlTemplate(final String md2HtmlContent, final ITOMLFile metadataGlobal, final List<TomlTable> tomlMetadata, final List<Path> templates, final String content){
+        this.md2HtmlContent = md2HtmlContent;
+        this.metadataGlobal = metadataGlobal;
+        this.tomlMetadata = tomlMetadata;
+        this.templates = templates;
+        this.templateContent = content;
     }
-    private String allMetadataToHtml(){
-        StringBuilder res=new StringBuilder();
-        for(TomlParseResult curMetadata:tomlMetadata){
-            res.append(metadataToHtml(curMetadata));
+
+    public String apply() {
+        replace(PATTERN_VAR, this::applyHtmlTemplate);
+        return this.templateContent;
+    }
+
+    protected void replace(final String Pattern, final Function<Matcher,String> fun) {
+        this.templateContent = matchAndReplace(Pattern, this.templateContent,fun);
+    }
+
+    protected static String matchAndReplace(final String pattern, final String innerContent, final Function<Matcher,String> replace) {
+        final Matcher replaceElement = Pattern.compile(pattern).matcher(innerContent);
+        final StringBuilder tmpReplace = new StringBuilder(innerContent.length());
+
+        while(replaceElement.find())
+            replaceElement.appendReplacement(tmpReplace, Matcher.quoteReplacement(replace.apply(replaceElement)));
+
+        replaceElement.appendTail(tmpReplace);
+        return tmpReplace.toString();
+    }
+
+    protected Optional<IMetaData> getMetadata(@NonNull final String key){
+        for(TomlTable curMetadata : tomlMetadata)
+        {
+            if(curMetadata.contains(key))
+                return Optional.of(IMetaData.buildMetaData(curMetadata.get(key)));
         }
+
+        if(metadataGlobal.getData() == null)
+            return Optional.empty();
+
+        if(metadataGlobal.getData().contains(key))
+            return Optional.of(IMetaData.buildMetaData(metadataGlobal.getData().get(key)));
+
+        return Optional.empty();
+    }
+
+    private String allMetadataToHtml(){
+        final StringBuilder res = new StringBuilder();
+
+        for(TomlTable curMetadata:tomlMetadata)
+            res.append( IMetaData.buildMetaData(curMetadata).toHtml());
+
         return res.toString();
     }
-    private String metadataToHtml(Object metadata){
-        if(metadata==null)return "";
-        StringBuilder result=new StringBuilder();
-        if(metadata instanceof TomlTable){
-            Map<String, Object> map = ((TomlTable)metadata).toMap();
-            result.append("<ul>");
-            for(Map.Entry<String, Object> e:map.entrySet()){
-                result.append("<li>")
-                        .append(e.getKey())
-                        .append(" : ")
-                        .append(metadataToHtml(e.getValue()))
-                        .append("</li>");
-            }
-            result.append("</ul>");
-            return result.toString();
-        }else if(metadata instanceof TomlArray){
-            List<Object> lst = ((TomlArray)metadata).toList();
-            result.append("<ul>");
-            lst.forEach(x->result.append("<li>").append(x.toString()).append("</li>"));
-            result.append("</ul>");
-            return result.toString();
-        }
-        return metadata.toString();
-    }
 
+    private String applyHtmlTemplate(final Matcher matcher){
+        final String currentMatch = matcher.group(1).trim();
 
+        //Process current match then append it
+        if("content".equalsIgnoreCase(currentMatch.trim()))
+            return md2HtmlContent;
 
-    public String apply() throws IOException {
-        Matcher matcher  = Pattern.compile("\\{\\{(.*?)\\}\\}").matcher(templateContent);
-        StringBuffer result = new StringBuffer(templateContent.length());
-        while (matcher.find()){
-            String currentMatch = matcher.group(1).trim();
-            //Process current match then append it
-            if("content".equalsIgnoreCase(currentMatch.trim())){
-                currentMatch = md2HtmlContent;
-            }else{
-                String[] splittedDot = currentMatch.split("[ ]*\\.[ ]*");
-                if(splittedDot.length>=1 && "metadata".equalsIgnoreCase(splittedDot[0].trim())){
-                    currentMatch = metadataCase(splittedDot);
-                }else{
-                    String[] splittedSpace = currentMatch.split("[ ]+");
-                    if(splittedDot.length>1 && "include".equalsIgnoreCase(splittedSpace[0].trim())){
-                        currentMatch = includeCase(splittedSpace);
-                    }
-                }
-            }
-            //Append
-            matcher.appendReplacement(result, Matcher.quoteReplacement(currentMatch));
-        }
-        matcher.appendTail(result);
-        return result.toString();
+        final String[] splittedDot = currentMatch.split("[ ]*\\.[ ]*");
+        if(splittedDot.length >= 1 && "metadata".equalsIgnoreCase(splittedDot[0].trim()))
+            return metadataCase(splittedDot);
 
-    }
+        final String[] splittedSpace = currentMatch.split("[ ]+");
+        if(splittedDot.length > 1 && "include".equalsIgnoreCase(splittedSpace[0].trim()))
+            return includeCase(splittedSpace);
 
-    private String includeCase(String[] splittedSpace) throws IOException {
-        String currentMatch;
-        String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
-        Path toInclude = this.templates.stream().filter(x->toIncludeName.equals(x.getFileName().toString()))
-                .findAny().orElse(null);
-        if(toInclude==null){
-            currentMatch = "";
-        }else{
-            currentMatch = HtmlTemplate.builder()
-                    .md2HtmlContent(this.md2HtmlContent)
-                    .metadataGlobal(this.metadataGlobal)
-                    .tomlMetadata(this.tomlMetadata)
-                    .templateContent(Files.readString(toInclude))
-                    .templates(this.templates).build().apply();
-        }
         return currentMatch;
     }
 
-    private String metadataCase(String[] splittedDot) {
-        String currentMatch;
-        if(splittedDot.length==1){
-            currentMatch = allMetadataToHtml();
-        }else{
-            String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
-            currentMatch = metadataToHtml(getMetadata(metadataSelected));
+    private String includeCase(@NonNull final String[] splittedSpace) {
+        final String toIncludeName = String.join(" ", Arrays.copyOfRange(splittedSpace, 1, splittedSpace.length)).replace("\"","");
+
+        final Optional<Path> toInclude = this.templates.stream().filter(x -> toIncludeName.equals(x.getFileName().toString())).findAny();
+
+        if(toInclude.isEmpty())
+           return "";
+
+        try
+        {
+            final String content = Files.readString(toInclude.get());
+            return new HtmlTemplate(md2HtmlContent,metadataGlobal,tomlMetadata,templates,content).apply();
         }
-        return currentMatch;
+        catch(IOException ioe) {
+            logger.warning("During include : " + ioe.getMessage());
+        }
+        return "";
+    }
+
+    private String metadataCase(@NonNull final String[] splittedDot) {
+        if(splittedDot.length == 1)
+            return allMetadataToHtml();
+
+        final String metadataSelected = String.join(".", Arrays.copyOfRange(splittedDot, 1, splittedDot.length));
+        final Optional<IMetaData> currentMetadata = getMetadata(metadataSelected);
+
+        if(currentMetadata.isPresent())
+            return currentMetadata.get().toHtml();
+        else
+            return metadataSelected;
     }
 }

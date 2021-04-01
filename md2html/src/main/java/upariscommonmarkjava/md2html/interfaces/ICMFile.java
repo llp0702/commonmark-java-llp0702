@@ -1,10 +1,12 @@
 package upariscommonmarkjava.md2html.interfaces;
 
-import org.tomlj.TomlParseResult;
+import lombok.NonNull;
+import org.tomlj.TomlTable;
+
 import java.util.List;
 
 public interface ICMFile extends IFile{
-    void setTomlMetadataLocal(List<TomlParseResult> parseResult);
+    void setTomlMetadataLocal(@NonNull List<TomlTable> parseResult);
     boolean isDraft();
-    List<TomlParseResult> getTomlMetadataLocal();
+    List<TomlTable> getTomlMetadataLocal();
 }
