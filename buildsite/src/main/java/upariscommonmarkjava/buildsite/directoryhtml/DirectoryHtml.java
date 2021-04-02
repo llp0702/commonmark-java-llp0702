@@ -59,12 +59,6 @@ public class DirectoryHtml implements IDirectoryHtml {
             logger.log(Level.INFO,"No dir was created");
         }
 
-        final File[] tmpFiles = tmp.listFiles();
-        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
-            logger.warning(tmp.getName() + " is already existing, please choose another output");
-            return;
-        }
-
         //Copy static files
         copyStaticFiles(targetBasePath, this.staticFilesPaths, inputContentBasePath, true);
         //Convert Md to Html then Copy hrefs

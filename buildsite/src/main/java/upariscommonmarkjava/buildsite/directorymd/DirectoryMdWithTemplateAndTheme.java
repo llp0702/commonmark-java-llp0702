@@ -1,6 +1,7 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
 import lombok.Getter;
+import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
@@ -19,14 +20,19 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
     private final Path themesBasePath;
     private final Logger logger = Logger.getLogger(getClass().getName());
     @Getter
-    private final List<ITheme> themes;
+    private final List<ITheme> themes=new ArrayList<>();
 
-    protected DirectoryMdWithTemplateAndTheme(Path toml, Path content, Path templates, Path themesBasePath) throws IOException {
+    public DirectoryMdWithTemplateAndTheme(@NonNull Path toml, @NonNull Path content,@NonNull Path templates,@NonNull Path themesBasePath) throws IOException {
         super(toml, content, templates);
         this.themesBasePath = themesBasePath;
-        this.themes = new ArrayList<>();
         parcoursThemes();
     }
+    public DirectoryMdWithTemplateAndTheme(@NonNull Path toml, @NonNull Path content, @NonNull Path themesBasePath) throws IOException {
+        super(toml, content);
+        this.themesBasePath = themesBasePath;
+        parcoursThemes();
+    }
+
 
     private void parcoursThemes() {
         try(final Stream<Path> themesPaths = Files.list(themesBasePath)){

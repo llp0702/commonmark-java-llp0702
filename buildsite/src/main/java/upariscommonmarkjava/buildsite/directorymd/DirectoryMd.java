@@ -115,6 +115,7 @@ public class DirectoryMd implements IDirectoryMd{
         parcoursContent(content);
     }
 
+
     public IDirectoryHtml generateHtml() {
         return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
                 Collections.emptyList(), Optional.empty());
