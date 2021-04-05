@@ -12,18 +12,23 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class TomlFile implements ITOMLFile {
+    
     @Getter
     private final Reader reader;
 
     @Setter
     private TomlParseResult data;
 
-    protected TomlFile(Reader reader) throws IOException
+    private Optional<Path> path;
+
+    protected TomlFile(Reader reader,Optional<Path> p) throws IOException
     {
         this.reader = reader;
         data = Toml.parse(reader);
+        path = p;
     }
 
     public TomlParseResult getData()
@@ -32,10 +37,20 @@ public class TomlFile implements ITOMLFile {
     }
 
     public static TomlFile fromString(@NonNull final String cmString) throws IOException {
-        return new TomlFile(new StringReader(cmString));
+        return new TomlFile(new StringReader(cmString),Optional.empty());
     }
 
     public static TomlFile fromPath(@NonNull final Path path) throws IOException {
-        return new TomlFile(Files.newBufferedReader(path));
+        return new TomlFile(Files.newBufferedReader(path),Optional.of(path));
     }
+
+    @Override
+    public String getStringPath() throws IOException{
+        if(path.isPresent()){
+            return path.get().toString();
+        }
+        throw new IOException("The TomlFile is from a String");
+    }
+
+
 }

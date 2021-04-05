@@ -5,6 +5,7 @@ import lombok.NonNull;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
+import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
@@ -19,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,17 +36,32 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
     protected List<Path> templatesPaths;
+    protected Hierarchie hier;
     protected ITheme theme;
     private final Path inputContentBasePath;
 
     public static DirectoryHtml create(@NonNull Path inputPath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths,
-                                       List<Path> staticFiles, List<Path> templatesFiles, ITheme theme) {
-        return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles, theme);
+                                       List<Path> staticFiles, List<Path> templatesFiles, ITheme theme, Optional<Hierarchie> hierOpt) {
+        return new DirectoryHtml(inputPath, tomlOptions, mdFilesPaths, staticFiles, templatesFiles, theme,hierOpt);
     }
 
     protected DirectoryHtml(@NonNull Path inputContentBasePath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFilesPaths,
-                            List<Path> templatesPaths, ITheme theme) {
+                            List<Path> templatesPaths, ITheme theme, Optional<Hierarchie> hierOpt) {
         this.inputContentBasePath = inputContentBasePath;
+        if(hierOpt.isPresent()){
+            this.hier = hierOpt.get();
+        }
+        else{
+            hier = new Hierarchie(mdFilesPaths);
+            try{
+                for(Path e : mdFilesPaths){
+                    hier.addDep(tomlOptions.getStringPath(), e.toString());
+                }
+            }catch(IOException e){
+
+            }
+            
+        }
 
         this.tomlOptions = tomlOptions;
 
@@ -168,6 +185,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         String htmlContent="";
         try {
             htmlContent = Files.readString(htmlPath);
+            hier.addNewPath(htmlContent);
         } catch (IOException e) {
             return Collections.emptyList();
         }
