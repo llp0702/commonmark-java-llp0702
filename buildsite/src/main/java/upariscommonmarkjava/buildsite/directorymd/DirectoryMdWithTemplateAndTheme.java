@@ -6,11 +6,13 @@ import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.buildsite.theme.Theme;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -20,8 +22,8 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
     @Getter
     private final List<ITheme> themes;
 
-    protected DirectoryMdWithTemplateAndTheme(Path toml, Path content, Path templates, Path themesBasePath) throws IOException {
-        super(toml, content, templates);
+    protected DirectoryMdWithTemplateAndTheme(Path toml, Path content, Path templates, Path themesBasePath,Optional<File> optHier) throws IOException {
+        super(toml, content, templates, optHier);
         this.themesBasePath = themesBasePath;
         this.themes = new ArrayList<>();
         parcoursThemes();
@@ -45,8 +47,13 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
 
     @Override
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                this.templatesPaths,  getThemeIfPresent() );
+        try{
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+            this.templatesPaths,  getThemeIfPresent(),getHierarchie() );  
+        }catch(ClassNotFoundException | IOException e){
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+            this.templatesPaths,  getThemeIfPresent(),Optional.empty() );  
+        }
     }
 
     private ITheme getThemeIfPresent(){

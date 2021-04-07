@@ -118,7 +118,7 @@ public class HierarchieTest {
             oos.writeObject(h);
             oos.flush();
             oos.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             fail();
         }
         try {

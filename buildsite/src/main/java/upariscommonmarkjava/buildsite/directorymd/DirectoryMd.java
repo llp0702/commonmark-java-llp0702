@@ -6,10 +6,14 @@ import upariscommonmarkjava.buildsite.SiteFormatException;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
+import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -24,6 +28,8 @@ public class DirectoryMd implements IDirectoryMd{
     protected final List<Path> staticFilesPaths;
 
     protected final ITOMLFile tomlOptions;
+
+    protected Optional<File> hier;
 
     @Getter
     protected final Path contentBasePath;
@@ -59,14 +65,17 @@ public class DirectoryMd implements IDirectoryMd{
         Optional<File> optThemesDir = Arrays.stream(files).filter(x->"themes".equals(x.getName()))
                 .findAny();
 
+        Optional<File> optHierarchieFile = Arrays.stream(files).filter(x->"hierarchie.ser".equals(x.getName()))
+                .findAny();
+
         try {
             if(optThemesDir.isPresent()){
                 return new DirectoryMdWithTemplateAndTheme(optToml.get().toPath(), content.toPath(),
-                        optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
+                        optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath(),optHierarchieFile);
             }else if(optTemplatesDir.isPresent()){
-                return new DirectoryMdWithTemplate(optToml.get().toPath(), content.toPath(), optTemplatesDir.get().toPath());
+                return new DirectoryMdWithTemplate(optToml.get().toPath(), content.toPath(), optTemplatesDir.get().toPath(),optHierarchieFile);
             }else{
-                return new DirectoryMd(optToml.get().toPath(), content.toPath());
+                return new DirectoryMd(optToml.get().toPath(), content.toPath(),optHierarchieFile);
             }
         }
         catch (IOException ioe){
@@ -98,9 +107,10 @@ public class DirectoryMd implements IDirectoryMd{
 
     }
 
-    protected DirectoryMd(Path toml, Path content) throws IOException {
+    protected DirectoryMd(Path toml, Path content,Optional<File> opthier) throws IOException {
         this.contentBasePath = content;
         this.tomlOptions = initOption(toml);
+        hier = opthier;
         mdFilesPaths = new ArrayList<>();
         staticFilesPaths = new ArrayList<>();
         parcoursContent(content);
@@ -108,8 +118,22 @@ public class DirectoryMd implements IDirectoryMd{
 
 
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                Collections.emptyList(), null );
+        try{
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), null, getHierarchie() );
+        }catch(ClassNotFoundException | IOException e){
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), null, Optional.empty());
+        }
+    }
+
+    protected Optional<Hierarchie> getHierarchie() throws ClassNotFoundException, IOException{
+        if(hier.isEmpty()){
+            return Optional.empty();
+        }
+        FileInputStream stream = new FileInputStream(hier.get());
+        ObjectInputStream os = new ObjectInputStream(stream);
+        return Optional.of((Hierarchie) os.readObject());
     }
 
     @Override

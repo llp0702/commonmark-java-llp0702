@@ -5,11 +5,13 @@ import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -22,8 +24,8 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
     @Getter
     private final Path templateBasePath;
 
-    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull Path content, Path templates) throws IOException{
-        super(toml,content);
+    protected DirectoryMdWithTemplate(@NonNull Path toml, @NonNull Path content, Path templates, Optional<File> optHierarchieFile) throws IOException{
+        super(toml,content,optHierarchieFile);
         this.templatesPaths = new ArrayList<>();
         if(templates!=null) {
             this.templateBasePath = templates;
@@ -49,8 +51,14 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
 
     @Override
     public IDirectoryHtml generateHtml() {
-        return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                this.templatesPaths, null);
+        try{
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths, null, getHierarchie());
+        }catch(ClassNotFoundException | IOException e){
+            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths, null,Optional.empty());
+        }
+        
     }
 
 }

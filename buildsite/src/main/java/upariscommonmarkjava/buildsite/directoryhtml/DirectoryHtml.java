@@ -11,13 +11,19 @@ import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +42,7 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
     protected List<Path> templatesPaths;
+    protected List<Path> directory;
     protected Hierarchie hier;
     protected ITheme theme;
     private final Path inputContentBasePath;
@@ -48,20 +55,6 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected DirectoryHtml(@NonNull Path inputContentBasePath, ITOMLFile tomlOptions, @NonNull List<Path> mdFilesPaths, List<Path> staticFilesPaths,
                             List<Path> templatesPaths, ITheme theme, Optional<Hierarchie> hierOpt) {
         this.inputContentBasePath = inputContentBasePath;
-        if(hierOpt.isPresent()){
-            this.hier = hierOpt.get();
-        }
-        else{
-            hier = new Hierarchie(mdFilesPaths);
-            try{
-                for(Path e : mdFilesPaths){
-                    hier.addDep(tomlOptions.getStringPath(), e.toString());
-                }
-            }catch(IOException e){
-
-            }
-            
-        }
 
         this.tomlOptions = tomlOptions;
 
@@ -74,54 +67,10 @@ public class DirectoryHtml implements IDirectoryHtml {
         if(this.templatesPaths ==null)this.templatesPaths = new ArrayList<>();
 
         this.theme = theme;
-    }
-
-
-
-    @Override
-    public void save(@NonNull final Path targetBasePath) throws IOException {
-
-        File tmp = new File(targetBasePath.toString());
-        if(!tmp.mkdirs()){
-            logger.log(Level.INFO,"No dir was created");
-        }
-
-        final File[] tmpFiles = tmp.listFiles();
-        if(tmp.exists() && tmpFiles != null && tmpFiles.length > 0){
-            logger.warning(tmp.getName() + " is already existing, please choose another output");
-            return;
-        }
-
-        //Copy static files
-        copyStaticFiles(targetBasePath, this.staticFilesPaths, inputContentBasePath, true);
-        //Convert Md to Html then Copy hrefs
-        convertMd2HtmlAndCopyHrefs(targetBasePath);
+        
 
         if(theme != null && theme.isValid()){
-            //If there is template, we copy its static files
-            copyStaticFiles(targetBasePath, theme.getStaticPaths() ,theme.getBasePath().resolve("static"), false);
-
-        }
-
-    }
-
-    private void convertMd2HtmlAndCopyHrefs(@NonNull Path targetBasePath) throws IOException {
-        for(Path inputMdFile: inputFilesMdPaths){
-
-            Path outputPath = callMd2Html(targetBasePath, inputMdFile);
-
-            //Save hrefs if not present
-            copyHrefsIfAbsent(targetBasePath, outputPath);
-        }
-    }
-
-    private Path callMd2Html(@NonNull Path targetBasePath, @NonNull Path inputMdFile) throws IOException {
-        Path outputPath = extension2Html(targetBasePath.resolve(inputContentBasePath.relativize(inputMdFile)));
-        Files.createDirectories(outputPath.getParent());
-
-        ICMFile cmFile = CMFile.fromPath(inputMdFile);
-        IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths);
-        if(theme != null && theme.isValid()){
+            directory.addAll(theme.getStaticPaths());
             for(Path themeTemplate: theme.getTemplatePaths()){
                 if(themeTemplate==null)continue;
                 if(this.templatesPaths.stream().noneMatch(templatePath->templatePath.getFileName()
@@ -130,6 +79,134 @@ public class DirectoryHtml implements IDirectoryHtml {
                 }
             }
         }
+
+        directory = new ArrayList<Path>();
+        directory.addAll(mdFilesPaths);
+        directory.addAll(templatesPaths);
+        directory.addAll(staticFilesPaths);
+        try {
+            directory.add(Paths.get(tomlOptions.getStringPath()));
+        } catch (IOException e) {}
+    }
+
+    private  void setHier(@NonNull final Path targetBasePath) {
+        try{
+            Optional<File> hierOpt = Optional.empty();
+            File file = targetBasePath.toFile();
+            if(file.exists()){
+                hierOpt = Arrays.stream(targetBasePath.toFile().listFiles()).filter(x->x.getName().equals("hierarchie.ser"))
+                .findAny();
+            }
+            if(hierOpt.isPresent()){
+                FileInputStream fichier = new FileInputStream(hierOpt.get());
+                ObjectInputStream ois = new ObjectInputStream(fichier);
+                hier = (Hierarchie) ois.readObject();
+            }else{
+                hier = new Hierarchie(directory);
+                try{
+                    hier.addFromCollection(tomlOptions.getStringPath(), inputFilesMdPaths);
+                }catch(IOException e){}
+            }
+        }catch(IOException  e){
+            logger.log(Level.WARNING,"IOException Hierarchie");
+        }catch(ClassNotFoundException e){
+            logger.log(Level.WARNING,"ClassNotFoundException Hierarchie");
+        }
+        System.out.println(hier);
+    }
+
+    private void update(@NonNull final Path targetBasePath) throws IOException {
+        System.out.println(hashCode() + "     " + hier.hashCode());
+        if(hashCode() == hier.hashCode()){
+            return;
+        }
+        List<String> rebuild = new ArrayList<String>();
+        for(Path p :  directory){
+            System.out.println(hier.getHashCourant(p.toString()) + "    " + p.toString() + "    " + getHash(p));
+            if(hier.getHashCourant(p.toString()) != getHash(p) || rebuild.contains(p.toString())){
+                if(staticFilesPaths.contains(p)){
+                    copyStaticFiles(targetBasePath, inputContentBasePath, true, p);
+                }else if(inputFilesMdPaths.contains(p)){
+                    convertMd2HtmlAndCopyHrefs(targetBasePath, p);
+                }
+                rebuild.addAll(hier.getDepCourant(p.toString()));
+                hier.setHashCourant(p.toString(),getHash(p));
+            }
+        }
+        hier.setGlobalHash(hashCode());
+        saveHier(targetBasePath);
+    }
+
+    private void saveHier(@NonNull final Path targetBasePath){
+        try {
+            FileOutputStream out = new FileOutputStream(targetBasePath.resolve("hierarchie.ser").toString());
+            ObjectOutputStream oos = new ObjectOutputStream(out);
+            oos.writeObject(hier);
+            oos.flush();
+            oos.close();
+        } catch (IOException e) {
+        }
+    }
+
+    @Override
+    public void save(@NonNull final Path targetBasePath,boolean all) throws IOException  {
+        setHier(targetBasePath);
+        if(all){
+            save(targetBasePath);
+        }else{
+            update(targetBasePath);
+        }
+    }
+
+
+    private void save(@NonNull final Path targetBasePath) throws IOException {
+        File tmp = new File(targetBasePath.toString());
+        if(!tmp.mkdirs()){
+            logger.log(Level.INFO,"No dir was created");
+        }
+
+        //Copy static files
+        for(Path staticFile : this.staticFilesPaths){
+            copyStaticFiles(targetBasePath, inputContentBasePath, true, staticFile);
+        }
+        for(Path inputMdFile: inputFilesMdPaths){
+            //Convert Md to Html then Copy hrefs
+            convertMd2HtmlAndCopyHrefs(targetBasePath, inputMdFile);
+        }
+
+        if(theme != null && theme.isValid()){
+            //If there is template, we copy its static files
+            for(Path staticFile : theme.getStaticPaths()){
+                copyStaticFiles(targetBasePath ,theme.getBasePath().resolve("static"), false, staticFile);
+            }
+
+        }
+        hier.setGlobalHash(hashCode());
+        saveHier(targetBasePath);
+
+    }
+
+    private void convertMd2HtmlAndCopyHrefs(@NonNull Path targetBasePath, Path inputMdFile) throws IOException {
+            Path outputPath = callMd2Html(targetBasePath, inputMdFile);
+            //Save hrefs if not present
+            copyHrefsIfAbsent(targetBasePath, outputPath);
+    }
+
+    private Path callMd2Html(@NonNull Path targetBasePath, @NonNull Path inputMdFile) throws IOException {
+        Path outputPath = extension2Html(targetBasePath.resolve(inputContentBasePath.relativize(inputMdFile)));
+        Files.createDirectories(outputPath.getParent());
+
+        ICMFile cmFile = CMFile.fromPath(inputMdFile);
+        IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths,hier);
+        /*if(theme != null && theme.isValid()){
+            for(Path themeTemplate: theme.getTemplatePaths()){
+                if(themeTemplate==null)continue;
+                if(this.templatesPaths.stream().noneMatch(templatePath->templatePath.getFileName()
+                        .equals(themeTemplate.getFileName()))){
+                    templatesPaths.add(themeTemplate);
+                }
+            }
+        }*/
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         return outputPath;
     }
@@ -168,8 +245,8 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    private void copyStaticFiles(@NonNull Path targetBasePath, @NonNull List<Path> staticFiles, @NonNull Path fromBasePath, boolean replaceIfExisting) throws IOException {
-        for(Path staticPath : staticFiles) {
+    private void copyStaticFiles(@NonNull Path targetBasePath, @NonNull Path fromBasePath, boolean replaceIfExisting, Path staticPath) throws IOException {
+            int hash = getHash(staticPath);
             Path output = targetBasePath.resolve(fromBasePath.relativize(staticPath));
             Files.createDirectories(output.getParent());
             if(replaceIfExisting){
@@ -177,7 +254,27 @@ public class DirectoryHtml implements IDirectoryHtml {
             }else if(!Files.exists(output)){
                 Files.copy(staticPath, output);
             }
+            //set the new static file hash in hierarchie
+            hier.setHashCourant(staticPath.toString(), hash);    
+    }
+
+    @Override
+    public int hashCode(){
+        int res = 0;
+        for(Path e : this.directory){
+            res += getHash(e);
         }
+        return Integer.valueOf(res).hashCode();
+    }
+
+    private int getHash(Path input){
+        String s = "";
+        try{
+            s = Files.readString(input);
+        }catch(IOException e){
+
+        }
+        return s.hashCode();
     }
 
     private List<String> getHrefs(@NonNull Path htmlPath){
@@ -185,7 +282,6 @@ public class DirectoryHtml implements IDirectoryHtml {
         String htmlContent="";
         try {
             htmlContent = Files.readString(htmlPath);
-            hier.addNewPath(htmlContent);
         } catch (IOException e) {
             return Collections.emptyList();
         }

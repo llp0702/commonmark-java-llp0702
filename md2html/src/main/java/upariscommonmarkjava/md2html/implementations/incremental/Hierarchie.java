@@ -21,6 +21,9 @@ public class Hierarchie implements Serializable{
 
     private Map<String,Pair<Integer,List<String>>> dependances;
 
+    private int globalHash;
+
+    private String targetPath;
     
     public Hierarchie(String[] liste){
         dependances = new HashMap<>();
@@ -49,6 +52,15 @@ public class Hierarchie implements Serializable{
         updateTransitivity(courant);
     }
 
+    public String getTargetPath(){
+        return targetPath;
+    }
+
+    public void setTargetPath(String target){
+        targetPath = target;
+    }
+
+
     private void updateTransitivity(String courant) {
         Iterator<Entry<String, Pair<Integer,List<String>>>> itr = dependances.entrySet().iterator(); 
         while(itr.hasNext()) 
@@ -76,6 +88,29 @@ public class Hierarchie implements Serializable{
         if(!existDepInCour(courant, newDep)){
             getDepCourant(courant).add(newDep);
         }
+    }
+
+    public void supprAllFromCollection(String courant, List<Path> e){
+        for(Path p : e){
+            supprDepFromCourant(courant, p.toString());
+        }
+    }
+
+    public void addFromCollection(String courant, List<Path> e){
+        for(Path p : e){
+            addDep(courant, p.toString());
+        }
+    }
+
+    public void supprInstanceOfCourant(String courant, List<Path> e){
+        for(Path p : e){
+            supprDepFromCourant(p.toString(), courant);
+        }
+    }
+
+    public boolean supprDepFromCourant(String courant, String dep){
+        List<String> liste = getDepCourant(courant);
+        return liste.remove(dep);
     }
 
     public void addNewPath(String newPath){
@@ -117,6 +152,15 @@ public class Hierarchie implements Serializable{
 
     public void supprPath(String courant){
         dependances.remove(courant);
+    }
+
+    public void setGlobalHash(int hash){
+        globalHash = hash;
+    }
+
+    @Override
+    public int hashCode(){
+        return globalHash;
     }
 
     public void clearPath(){

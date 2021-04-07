@@ -6,6 +6,7 @@ import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
@@ -33,13 +34,12 @@ public class BuildSiteMain {
                 }
 
                 IDirectoryHtml directoryHtml = directoryMd.generateHtml();
-
+                String out = "_output";
                 if(line.hasOption("o")) {
-                    directoryHtml.save(Paths.get(line.getOptionValue("o")));
+                    out = line.getOptionValue("o");
                 }
-                else{
-                    directoryHtml.save(Paths.get(currentDirectory,"_output"));
-                }
+                Path outputPath = Paths.get(out);
+                directoryHtml.save(outputPath,line.hasOption("r"));
             }
         }
         catch(ParseException | SiteFormatException | IOException exp ) {
@@ -66,6 +66,9 @@ public class BuildSiteMain {
                 .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. DIR vaut le répertoire " +
                         "courant par défaut. La présence des fichiers " +
                         "DIR/site.toml et DIR/content/index.md est nécessaire.")
+                .build());
+        options.addOption(Option.builder("r").longOpt("rebuild-all").numberOfArgs(0)
+                .desc("Recompile le projet dans sa globalité")
                 .build());
         return options;
     }
