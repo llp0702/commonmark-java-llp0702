@@ -76,6 +76,8 @@ public class SsgMain {
         if(command.equals(BUILD)) {
             if (Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))) {
                 Md2HtmlMain.main(args);
+            }else{
+                BuildSiteMain.main(args);
             }
         }else if(command.equals(SERVE)){
             Options acceptedOptions = BuildSiteMain.buildsiteMainOptions();
@@ -83,11 +85,7 @@ public class SsgMain {
 
             BuildSiteMain.main(args, acceptedOptions);
             HttpMain.main(args, acceptedOptions);
-        }else{
-            BuildSiteMain.main(args);
         }
-
-
     }
 
 }

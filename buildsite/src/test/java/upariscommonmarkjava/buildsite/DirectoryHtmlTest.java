@@ -49,7 +49,7 @@ class DirectoryHtmlTest {
     @Test
     void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/out/correct/_output")));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/hierarchie/correct/_output"),false));
     }
 
     @Test

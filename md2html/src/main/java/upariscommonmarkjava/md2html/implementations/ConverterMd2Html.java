@@ -9,6 +9,7 @@ import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
+import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 import upariscommonmarkjava.md2html.interfaces.ICMFile;
 import upariscommonmarkjava.md2html.interfaces.IConverterMd2Html;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
@@ -33,9 +34,18 @@ public class ConverterMd2Html implements IConverterMd2Html {
     private final Optional<ITOMLFile> globalMetadata;
     private final List<Path> templateFiles;
 
+    private Optional<Hierarchie> actualHierarchie;
+
+    public ConverterMd2Html(final ITOMLFile globalMetadata, final List<Path> templateFiles,Hierarchie hier){
+        this.globalMetadata = Optional.of(globalMetadata);
+        this.templateFiles = templateFiles;
+        this.actualHierarchie = Optional.of(hier);
+    }
+
     public ConverterMd2Html(final ITOMLFile globalMetadata, final List<Path> templateFiles){
         this.globalMetadata = Optional.of(globalMetadata);
         this.templateFiles = templateFiles;
+        this.actualHierarchie = Optional.empty();
     }
 
     public ConverterMd2Html(final ITOMLFile globalMetadata){
@@ -45,6 +55,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
     public ConverterMd2Html() {
         this.globalMetadata = Optional.empty();
         this.templateFiles = new ArrayList<>();
+        this.actualHierarchie = Optional.empty();
     }
 
     @Override
@@ -64,7 +75,9 @@ public class ConverterMd2Html implements IConverterMd2Html {
             return "";
 
         final String htmlContent = htmlRenderer.render(resNode);
-
+        if(globalMetadata.isPresent()){
+            
+        }
         if (templateFiles.isEmpty())
             return wrapHtmlBody(htmlContent);
 
@@ -96,7 +109,6 @@ public class ConverterMd2Html implements IConverterMd2Html {
                 String curRes = metaData.getString("template");
                 if (curRes != null) {
                     template = searchPathEndsWith(templateFiles,curRes);
-
                     if (template.isEmpty())
                         break;
                 }
@@ -107,10 +119,14 @@ public class ConverterMd2Html implements IConverterMd2Html {
             return wrapHtmlBody(htmlContent);
         }
 
-
         String file = "";
         try{
             file = Files.readString(template.get());
+            if(actualHierarchie.isPresent()){
+                //retire de toute la liste des templates le cmFile afin de mettre le potentiel nouveau
+                actualHierarchie.get().supprInstanceOfCourant(cmFile.getStringPath(), templateFiles);
+                actualHierarchie.get().addDep(template.get().toString(), cmFile.getStringPath());
+            }
         }
         catch(IOException ioe){
             logger.warning(ioe.getMessage());

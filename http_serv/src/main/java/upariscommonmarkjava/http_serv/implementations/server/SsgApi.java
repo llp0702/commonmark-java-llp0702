@@ -55,7 +55,7 @@ public class SsgApi {
     }
 
     public void updateInputHandler() throws IOException, SiteFormatException {
-        BuildSiteMain.buildSite(inputBasePath, outputBasePath);
+        BuildSiteMain.buildSite(inputBasePath, outputBasePath, false);
     }
     public void updateFile(@NonNull final Path pathToUpdate, String content) throws IOException {
         if(content==null)content ="";

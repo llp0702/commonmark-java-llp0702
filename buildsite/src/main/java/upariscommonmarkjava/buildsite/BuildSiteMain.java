@@ -29,7 +29,8 @@ public class BuildSiteMain {
                                 currentDirectory),
                         line.hasOption("o")?
                                 Paths.get(line.getOptionValue("o")):
-                                Paths.get(currentDirectory, "_output")
+                                Paths.get(currentDirectory, "_output"),
+                        line.hasOption("r")
                         );
 
             }
@@ -43,10 +44,10 @@ public class BuildSiteMain {
         }
     }
 
-    public static void buildSite(final Path inputDir, final Path outputDir) throws IOException, SiteFormatException {
+    public static void buildSite(final Path inputDir, final Path outputDir, final boolean isRebuildAll) throws IOException, SiteFormatException {
         DirectoryMd.open(inputDir)
                 .generateHtml()
-                .save(outputDir);
+                .save(outputDir, isRebuildAll);
     }
 
     public static void help() {
@@ -64,6 +65,9 @@ public class BuildSiteMain {
                 .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. DIR vaut le répertoire " +
                         "courant par défaut. La présence des fichiers " +
                         "DIR/site.toml et DIR/content/index.md est nécessaire.")
+                .build());
+        options.addOption(Option.builder("r").longOpt("rebuild-all").numberOfArgs(0)
+                .desc("Recompile le projet dans sa globalité")
                 .build());
         return options;
     }
