@@ -6,6 +6,8 @@ import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
+import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DirectoryMdTest {
@@ -18,8 +20,8 @@ class DirectoryMdTest {
     {
         try
         {
-            correct_site = DirectoryMd.open("src/test/resources/minimal");
-            incorrect_site = DirectoryMd.open("src/test/resources/other");
+            correct_site = DirectoryMd.open(Paths.get("src/test/resources/minimal"));
+            incorrect_site = DirectoryMd.open(Paths.get("src/test/resources/other"));
         }
         catch(SiteFormatException e)
         {
@@ -31,7 +33,7 @@ class DirectoryMdTest {
     void testIndexPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open("src/test/resources/no_index"));
+                () -> DirectoryMd.open(Paths.get("src/test/resources/no_index")));
 
         assertEquals("No index.md found ! ", e.getMessage());
     }
@@ -40,7 +42,7 @@ class DirectoryMdTest {
     void testTomlPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open("src/test/resources/no_toml"));
+                () -> DirectoryMd.open(Paths.get("src/test/resources/no_toml")));
 
         assertEquals("No Site.Toml found ! ", e.getMessage());
     }
@@ -49,7 +51,7 @@ class DirectoryMdTest {
     void testContentPresent()
     {
         SiteFormatException e = assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open("src/test/resources/no_content"));
+                () -> DirectoryMd.open(Paths.get("src/test/resources/no_content")));
 
         assertEquals("No content folder ! ", e.getMessage());
     }
@@ -60,7 +62,7 @@ class DirectoryMdTest {
     {
         //Test2
         assertThrows(SiteFormatException.class,
-                () -> DirectoryMd.open(""));
+                () -> DirectoryMd.open(Paths.get("")));
     }
 
     //Vérifie la bonne génération du site
