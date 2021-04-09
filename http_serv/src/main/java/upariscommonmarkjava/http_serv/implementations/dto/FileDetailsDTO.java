@@ -10,4 +10,5 @@ public class FileDetailsDTO {
     private String name;
     private boolean isInputFile;
     private String absoluteBaseInputPath;
+    private String absoluteBaseOutputPath;
 }

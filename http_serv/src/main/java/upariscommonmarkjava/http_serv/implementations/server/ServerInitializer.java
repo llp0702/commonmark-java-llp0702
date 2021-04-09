@@ -8,8 +8,8 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 public class ServerInitializer extends ChannelInitializer<Channel> {
     private final SsgApi ssgApi;
-    public ServerInitializer(final SsgApi ssgApi){
-        this.ssgApi = ssgApi;
+    public ServerInitializer(final SsgApi ssgApii){
+        ssgApi = ssgApii;
     }
     @Override
     protected void initChannel(Channel ch) {

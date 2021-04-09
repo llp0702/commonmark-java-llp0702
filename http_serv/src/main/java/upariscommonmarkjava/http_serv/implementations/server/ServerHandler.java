@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import upariscommonmarkjava.buildsite.SiteFormatException;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
@@ -52,6 +53,29 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
                 e.printStackTrace();
             }
         });
+        routingTable.put(API_GET_UPDATE_SITE, (ctx, msg)->{
+            try {
+                ssgApi.updateInputHandler();
+                sendJson(ctx, "Success");
+            } catch (IOException| SiteFormatException e) {
+                e.printStackTrace();
+            }
+        });
+
+        routingTable.put(API_POST_UPDATE_FILE, (ctx, msg)->{
+            if(msg.headers().contains(HEADER_FILE_PATH)
+                    && !msg.headers().get(HEADER_FILE_PATH).isEmpty()
+                    && !msg.headers().get(HEADER_FILE_PATH).equals("undefined")){
+                Path pathToUpdate = Paths.get(msg.headers().get(HEADER_FILE_PATH));
+                String newContent = msg.content().toString(StandardCharsets.UTF_8);
+                try {
+                    ssgApi.updateFile(pathToUpdate, newContent);
+                    sendJson(ctx, "Success");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
     @Override
@@ -93,6 +117,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         routingTable.entrySet().stream().filter(entry->
             entry.getKey().matcher(request.uri()).matches()
         ).findFirst().ifPresent(entry-> entry.getValue().accept(ctx, request));
+
         sendError(ctx,HttpResponseStatus.NOT_FOUND);
     }
 

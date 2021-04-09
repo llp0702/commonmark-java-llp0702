@@ -1,11 +1,15 @@
 package upariscommonmarkjava.http_serv.implementations.server;
 
 import lombok.Getter;
+import lombok.NonNull;
+import upariscommonmarkjava.buildsite.BuildSiteMain;
+import upariscommonmarkjava.buildsite.SiteFormatException;
 import upariscommonmarkjava.http_serv.implementations.dto.FileDetailsDTO;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +26,7 @@ public class SsgApi {
         this.outputBasePath = outputBasePath;
     }
     public List<FileDetailsDTO> getInputFiles(){
-        return this.getFilesArbo(inputBasePath).stream().map(i->{i.setInputFile(true);return i;})
+        return this.getFilesArbo(inputBasePath).stream().peek(i-> i.setInputFile(true))
                 .collect(Collectors.toList());
     }
 
@@ -37,6 +41,7 @@ public class SsgApi {
                             .absolutePath(inputFilePathCur.toAbsolutePath().toString())
                             .name(inputFilePathCur.getFileName().toString())
                             .absoluteBaseInputPath(inputBasePath.toAbsolutePath().toString())
+                            .absoluteBaseOutputPath(outputBasePath.toAbsolutePath().toString())
                             .build());
                 }
             });
@@ -46,9 +51,16 @@ public class SsgApi {
         }
     }
     public List<FileDetailsDTO> getOutputFiles(){
-        return getFilesArbo(outputBasePath).stream().map(o->{
-            o.setInputFile(false);
-            return o;
-        }).collect(Collectors.toList());
+        return getFilesArbo(outputBasePath).stream().peek(o-> o.setInputFile(false)).collect(Collectors.toList());
+    }
+
+    public void updateInputHandler() throws IOException, SiteFormatException {
+        BuildSiteMain.buildSite(inputBasePath, outputBasePath);
+    }
+    public void updateFile(@NonNull final Path pathToUpdate, String content) throws IOException {
+        if(content==null)content ="";
+        Files.writeString(pathToUpdate, content, StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.CREATE);
     }
 }

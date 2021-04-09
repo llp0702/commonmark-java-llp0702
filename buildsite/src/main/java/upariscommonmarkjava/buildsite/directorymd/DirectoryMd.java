@@ -52,11 +52,11 @@ public class DirectoryMd implements IDirectoryMd{
             throw new SiteFormatException(errorMessage);
     }
 
-    public static DirectoryMd open(final String path) throws SiteFormatException {
-        final Path folder = Paths.get(path);
-        isDirectory(folder.toFile(), "The file is not a folder");
+    public static DirectoryMd open(final Path folderPath) throws SiteFormatException {
 
-        final File[] files = findFiles(folder.toFile(), "No files found");
+        isDirectory(folderPath.toFile(), "The file is not a folder");
+
+        final File[] files = findFiles(folderPath.toFile(), "No files found");
 
         final File toml = findFileOrDirectory("site.toml",files,"No Site.Toml found ! ");
         final File content = findFileOrDirectory("content",files,"No content folder ! ");
@@ -72,8 +72,12 @@ public class DirectoryMd implements IDirectoryMd{
 
         try {
             if(optThemesDir.isPresent()){
-                return new DirectoryMdWithTemplateAndTheme(toml.toPath(), content.toPath(),
-                        optTemplatesDir.map(File::toPath).orElse(null), optThemesDir.get().toPath());
+
+                if(optTemplatesDir.isPresent())
+                    return new DirectoryMdWithTemplateAndTheme(toml.toPath(), content.toPath(),
+                        optTemplatesDir.get().toPath(), optThemesDir.get().toPath());
+
+                return new DirectoryMdWithTemplateAndTheme(toml.toPath(), content.toPath(), optThemesDir.get().toPath());
             }else if(optTemplatesDir.isPresent()){
                 return new DirectoryMdWithTemplate(toml.toPath(), content.toPath(), optTemplatesDir.get().toPath());
             }else{

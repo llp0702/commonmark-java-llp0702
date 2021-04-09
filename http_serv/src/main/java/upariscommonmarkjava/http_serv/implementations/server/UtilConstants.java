@@ -18,6 +18,11 @@ public final class UtilConstants {
 
     public static final Pattern API_GET_INPUT_FILES_PATHS_URL = Pattern.compile("/getInp");
     public static final Pattern API_GET_OUTPUT_FILES_PATHS_URL = Pattern.compile("/getOut");
+    public static final Pattern API_GET_UPDATE_SITE = Pattern.compile("/reloadsite");
+
+    public static final Pattern API_POST_UPDATE_FILE = Pattern.compile("/updateFile");
+
 
     public static final String HEADER_GET_ANY_FILE = "PLEASE_GIVE_ME_A_FILE";
+    public static final String HEADER_FILE_PATH = "FILE_PATH";
 }
