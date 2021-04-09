@@ -65,7 +65,7 @@ public class CMFile implements ICMFile {
                 continue;
 
             Boolean isDraft = metadataSet.getBoolean("draft");
-            if(isDraft != null && isDraft){
+            if(isDraft != null && isDraft ){
                 return true;
             }
         }

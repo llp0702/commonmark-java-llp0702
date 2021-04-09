@@ -8,6 +8,7 @@ mainClassName = 'upariscommonmarkjava.SsgMain'
 dependencies {
     implementation project(':md2html')
     implementation project(':buildsite')
+    implementation project(':http_serv')
 }
 
 def outputDir= "${projectDir}/bin"
@@ -24,7 +25,9 @@ task deploy (dependsOn: distZip) {
         }
     }
 }
-
+run{
+    standardInput = System.in
+}
 allprojects {
     repositories {
         mavenCentral()
@@ -37,15 +40,13 @@ allprojects {
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-
+        implementation 'org.nanohttpd:nanohttpd:2.3.1'
+        implementation'org.nanohttpd:nanohttpd-webserver:2.3.1'
         implementation 'org.commonmark:commonmark:0.17.1'
         implementation 'org.commonmark:commonmark-ext-gfm-tables:0.17.1'
         implementation 'org.commonmark:commonmark-ext-yaml-front-matter:0.17.1'
-
         implementation 'org.tomlj:tomlj:1.0.0'
-
         implementation 'commons-cli:commons-cli:1.4'
-
         implementation 'org.projectlombok:lombok:1.18.18'
         annotationProcessor 'org.projectlombok:lombok:1.18.18'
         testImplementation 'org.projectlombok:lombok:1.18.18'
@@ -80,4 +81,3 @@ allprojects {
 
 
 }
-

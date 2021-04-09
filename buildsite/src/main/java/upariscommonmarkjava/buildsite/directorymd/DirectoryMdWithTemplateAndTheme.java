@@ -1,12 +1,12 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
 import lombok.Getter;
+import lombok.NonNull;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.buildsite.theme.Theme;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,14 +20,19 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
     private final Path themesBasePath;
     private final Logger logger = Logger.getLogger(getClass().getName());
     @Getter
-    private final List<ITheme> themes;
+    private final List<ITheme> themes=new ArrayList<>();
 
-    protected DirectoryMdWithTemplateAndTheme(Path toml, Path content, Path templates, Path themesBasePath,Optional<File> optHier) throws IOException {
-        super(toml, content, templates, optHier);
+    public DirectoryMdWithTemplateAndTheme(@NonNull Path toml, @NonNull Path content,@NonNull Path templates,@NonNull Path themesBasePath) throws IOException {
+        super(toml, content, templates);
         this.themesBasePath = themesBasePath;
-        this.themes = new ArrayList<>();
         parcoursThemes();
     }
+    public DirectoryMdWithTemplateAndTheme(@NonNull Path toml, @NonNull Path content, @NonNull Path themesBasePath) throws IOException {
+        super(toml, content);
+        this.themesBasePath = themesBasePath;
+        parcoursThemes();
+    }
+
 
     private void parcoursThemes() {
         try(final Stream<Path> themesPaths = Files.list(themesBasePath)){
@@ -47,25 +52,20 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
 
     @Override
     public IDirectoryHtml generateHtml() {
-        try{
-            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-            this.templatesPaths,  getThemeIfPresent(),getHierarchie() );  
-        }catch(ClassNotFoundException | IOException e){
-            return DirectoryHtml.create(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-            this.templatesPaths,  getThemeIfPresent(),Optional.empty() );  
-        }
+        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.templatesPaths,  getTheme());
     }
 
-    private ITheme getThemeIfPresent(){
+    private Optional<ITheme> getTheme(){
         if(tomlOptions.getData() != null){
             final String themeName = tomlOptions.getData().getString("general.theme");
             if(themeName != null && !themeName.isBlank()){
                 return themes.stream().
                         filter(theme->themeName.equals(theme.getName()))
-                        .findFirst().orElse(null);
+                        .findFirst();
             }
         }
-        return null;
+        return Optional.empty();
     }
 
 }
