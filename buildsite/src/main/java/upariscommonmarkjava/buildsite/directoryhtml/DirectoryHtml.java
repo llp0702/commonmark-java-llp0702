@@ -3,7 +3,6 @@ package upariscommonmarkjava.buildsite.directoryhtml;
 import lombok.Getter;
 import lombok.NonNull;
 import upariscommonmarkjava.buildsite.theme.ITheme;
-import upariscommonmarkjava.buildsite.theme.Theme;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
@@ -13,7 +12,6 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -106,20 +104,27 @@ public class DirectoryHtml implements IDirectoryHtml {
         if(hashCode() == hier.hashCode()){
             return;
         }
-        List<String> rebuild = new ArrayList<String>();
         for(Path p :  directory){
-            if(hier.getHashCourant(p.toString()) != getHash(p) || rebuild.contains(p.toString())){
-                if(staticFilesPaths.contains(p)){
-                    copyStaticFiles(targetBasePath, inputContentBasePath, true, p);
-                }else if(inputFilesMdPaths.contains(p)){
-                    convertMd2HtmlAndCopyHrefs(targetBasePath, p);
+            if(hier.getHashCourant(p.toString()) != getHash(p)){
+                compileFile(p,targetBasePath);
+                for(String d : hier.getDepCourant(p.toString())){
+                    Path dep = Path.of(d);
+                    compileFile(dep,targetBasePath);
+                    hier.setHashCourant(d.toString(),getHash(dep));
                 }
-                rebuild.addAll(hier.getDepCourant(p.toString()));
                 hier.setHashCourant(p.toString(),getHash(p));
             }
         }
         hier.setGlobalHash(hashCode());
         saveHier(targetBasePath);
+    }
+
+    private void compileFile(@NonNull final Path p,@NonNull final Path targetBasePath) throws IOException {
+        if(staticFilesPaths.contains(p)){
+            copyStaticFiles(targetBasePath, inputContentBasePath, true, p);
+        }else if(inputFilesMdPaths.contains(p)){
+            convertMd2HtmlAndCopyHrefs(targetBasePath, p);
+        }
     }
 
     private void saveHier(@NonNull final Path targetBasePath){
@@ -191,7 +196,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         Files.createDirectories(outputPath.getParent());
 
         final ICMFile cmFile = CMFile.fromPath(inputMdFile);
-        final IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths);
+        final IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths,hier);
 
 
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);

@@ -19,6 +19,7 @@ public class CMFile implements ICMFile {
     protected CMFile(Reader reader,Optional<Path> p)
     {
         this.reader = reader;
+        path = p;
     }
 
     public static CMFile fromString(@NonNull final String cmString) {
