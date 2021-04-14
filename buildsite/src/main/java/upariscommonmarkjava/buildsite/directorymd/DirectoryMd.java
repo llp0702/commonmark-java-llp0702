@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -108,7 +109,6 @@ public class DirectoryMd implements IDirectoryMd{
         }catch (IOException e){
             logger.warning("IOException during parcoursThemes");
         }
-
     }
 
     protected DirectoryMd(final Path toml,final Path content) throws IOException {
@@ -119,10 +119,13 @@ public class DirectoryMd implements IDirectoryMd{
         parcoursContent(content);
     }
 
+    protected IDirectoryHtml generateHtml(BuilderDirectoryHtml builder){
+        return builder.apply(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                Collections.emptyList(), Optional.empty());
+    }
 
     public IDirectoryHtml generateHtml() {
-        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                Collections.emptyList(), Optional.empty());
+        return generateHtml(DirectoryHtml::new);
     }
 
     @Override
