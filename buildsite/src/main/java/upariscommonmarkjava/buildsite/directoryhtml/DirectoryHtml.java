@@ -3,7 +3,6 @@ package upariscommonmarkjava.buildsite.directoryhtml;
 import lombok.Getter;
 import lombok.NonNull;
 import upariscommonmarkjava.buildsite.theme.ITheme;
-import upariscommonmarkjava.buildsite.theme.Theme;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
@@ -13,7 +12,6 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
