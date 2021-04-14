@@ -75,9 +75,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
             return "";
 
         final String htmlContent = htmlRenderer.render(resNode);
-        if(globalMetadata.isPresent()){
-            
-        }
+
         if (templateFiles.isEmpty())
             return wrapHtmlBody(htmlContent);
 
@@ -100,33 +98,56 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>" + body + "</body></html>";
     }
 
-    private String applyTemplateIfPresent(@NonNull final ICMFile cmFile, final String htmlContent){
+    public Optional<Hierarchie> getActualHierarchie(@NonNull final ICMFile cmFile){
         final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
-        Optional<Path> template = searchPathEqual(templateFiles,"default.html");
+        final Optional<Path> template = searchTemplate(metaDataLocal);
+        refreshHierarchie(cmFile,template);
+        return this.actualHierarchie;
+    }
 
-        for (TomlTable metaData : metaDataLocal) {
-            if (metaData != null) {
-                String curRes = metaData.getString("template");
-                if (curRes != null) {
-                    template = searchPathEndsWith(templateFiles,curRes);
-                    if (template.isEmpty())
-                        break;
+    private void refreshHierarchie(@NonNull final ICMFile cmFile, final Optional<Path> template){
+        if(template.isEmpty())
+            return;
+
+        try {
+            if (actualHierarchie.isPresent()) {
+                //retire de toute la liste des templates le cmFile afin de mettre le potentiel nouveau
+                actualHierarchie.get().supprInstanceOfCourant(cmFile.getStringPath(), templateFiles);
+                actualHierarchie.get().addDep(template.get().toString(), cmFile.getStringPath());
+            }
+        } catch (IOException ignored) {}
+    }
+
+    private Optional<Path> searchTemplate(final List<TomlTable> metaDataLocal){
+        Optional<Path> template = searchPathEqual(templateFiles,"default.html");
+        if(metaDataLocal != null){
+            for (TomlTable metaData : metaDataLocal) {
+                if (metaData != null) {
+                    String curRes = metaData.getString("template");
+                    if (curRes != null) {
+                        template = searchPathEndsWith(templateFiles,curRes);
+                        if (template.isEmpty())
+                            break;
+                    }
                 }
             }
         }
+        return template;
+    }
+
+    private String applyTemplateIfPresent(@NonNull final ICMFile cmFile, final String htmlContent){
+        final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
+        final Optional<Path> template = searchTemplate(metaDataLocal);
 
         if (template.isEmpty()) {
             return wrapHtmlBody(htmlContent);
         }
 
+        refreshHierarchie(cmFile,template);
+
         String file = "";
         try{
             file = Files.readString(template.get());
-            if(actualHierarchie.isPresent()){
-                //retire de toute la liste des templates le cmFile afin de mettre le potentiel nouveau
-                actualHierarchie.get().supprInstanceOfCourant(cmFile.getStringPath(), templateFiles);
-                actualHierarchie.get().addDep(template.get().toString(), cmFile.getStringPath());
-            }
         }
         catch(IOException ioe){
             logger.warning(ioe.getMessage());
