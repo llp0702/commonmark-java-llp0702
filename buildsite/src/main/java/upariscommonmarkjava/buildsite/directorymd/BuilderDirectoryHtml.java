@@ -1,5 +1,6 @@
-package upariscommonmarkjava.buildsite.directoryhtml;
+package upariscommonmarkjava.buildsite.directorymd;
 
+import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
@@ -9,5 +10,5 @@ import java.util.Optional;
 
 @FunctionalInterface
 interface BuilderDirectoryHtml{
-    DirectoryHtml apply(Path inputContentBasePath, ITOMLFile tomlOptions,List<Path> mdFilesPaths, List<Path> staticFilesPaths, List<Path> templatesPaths, Optional<ITheme> theme);
+    DirectoryHtml apply(Path inputContentBasePath, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFilesPaths, List<Path> templatesPaths, Optional<ITheme> theme);
 }
