@@ -2,6 +2,7 @@ package upariscommonmarkjava;
 
 import org.apache.commons.cli.*;
 import upariscommonmarkjava.buildsite.BuildSiteMain;
+import upariscommonmarkjava.http_serv.HttpMain;
 import upariscommonmarkjava.md2html.Md2HtmlMain;
 
 import java.util.Arrays;
@@ -10,7 +11,8 @@ import java.util.logging.Logger;
 
 public class SsgMain {
     public static final String BUILD = "build";
-    public static final List<String> commands = List.of(BUILD, "help");
+    public static final String SERVE = "serve";
+    public static final List<String> commands = List.of(BUILD, "help",SERVE);
     static Logger logger;
     public static void main(String[] args) {
         logger = Logger.getAnonymousLogger();
@@ -71,14 +73,19 @@ public class SsgMain {
             return;
         }
 
-        if(command.equals(BUILD)){
-            if(Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))){
+        if(command.equals(BUILD)) {
+            if (Arrays.stream(args).anyMatch(x -> x.endsWith(".md"))) {
                 Md2HtmlMain.main(args);
             }else{
                 BuildSiteMain.main(args);
             }
-        }
+        }else if(command.equals(SERVE)){
+            Options acceptedOptions = BuildSiteMain.buildsiteMainOptions();
+            for(Option o : HttpMain.serveMainOptions().getOptions())acceptedOptions.addOption(o);
 
+            BuildSiteMain.main(args, acceptedOptions);
+            HttpMain.main(args, acceptedOptions);
+        }
     }
 
 }

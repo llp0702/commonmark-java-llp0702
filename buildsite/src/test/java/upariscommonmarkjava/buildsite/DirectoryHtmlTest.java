@@ -30,7 +30,7 @@ class DirectoryHtmlTest {
     {
         try
         {
-            correct_site = DirectoryMd.open("src/test/resources/minimal");
+            correct_site = DirectoryMd.open(Paths.get("src/test/resources/minimal"));
         }
         catch(SiteFormatException e)
         {
@@ -49,7 +49,7 @@ class DirectoryHtmlTest {
     @Test
     void testSave()
     {
-        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/out/correct/_output")));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/hierarchie/correct/_output"),false));
     }
 
     @Test

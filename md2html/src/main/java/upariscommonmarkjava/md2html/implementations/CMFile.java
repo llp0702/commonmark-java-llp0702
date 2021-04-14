@@ -10,22 +10,24 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 public class CMFile implements ICMFile {
     public static final Logger logger = Logger.getLogger("CMFile logger");
 
-    protected CMFile(Reader reader)
+    protected CMFile(Reader reader,Optional<Path> p)
     {
         this.reader = reader;
+        path = p;
     }
 
     public static CMFile fromString(@NonNull final String cmString) {
-        return new CMFile(new StringReader(cmString));
+        return new CMFile(new StringReader(cmString),Optional.empty());
     }
 
     public static CMFile fromPath(@NonNull final Path path) throws IOException {
-        return new CMFile(Files.newBufferedReader(path));
+        return new CMFile(Files.newBufferedReader(path),Optional.of(path));
     }
 
     public void reset()
@@ -39,6 +41,8 @@ public class CMFile implements ICMFile {
     }
 
     final Reader reader;
+
+    private Optional<Path> path;
 
     List<TomlTable> tomlMetadataLocal;
 
@@ -62,11 +66,19 @@ public class CMFile implements ICMFile {
                 continue;
 
             Boolean isDraft = metadataSet.getBoolean("draft");
-            if(isDraft != null && isDraft){
+            if(isDraft != null && isDraft ){
                 return true;
             }
         }
         return false;
+    }
+
+    @Override
+    public String getStringPath() throws IOException{
+        if(path.isPresent()){
+            return path.get().toString();
+        }
+        throw new IOException("The Common Mark File is from a String");
     }
 
 }

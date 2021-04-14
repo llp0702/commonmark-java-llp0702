@@ -1,4 +1,5 @@
 rootProject.name = 'ssg'
 include 'md2html'
 include 'buildsite'
+include 'http_serv'
 

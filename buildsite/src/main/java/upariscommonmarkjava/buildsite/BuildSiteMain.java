@@ -6,40 +6,33 @@ import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 public class BuildSiteMain {
     public static void main(String[] args) {
+        main(args,  buildsiteMainOptions());
+    }
+    public static void main(String[] args, Options options){
         Logger logger = Logger.getAnonymousLogger();
-        // create Options object
-        Options options = buildsiteMainOptions();
         CommandLineParser parser = new DefaultParser();
-
+        String currentDirectory = System.getProperty("user.dir");
         try {
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse( options, args, false);
             if( line.hasOption("h")){
                 help();
             }else{
-                String currentDirectory = System.getProperty("user.dir");
-                IDirectoryMd directoryMd;
-                if(line.hasOption("i"))
-                {
-                    directoryMd = DirectoryMd.open(line.getOptionValue("i"));
-                }
-                else
-                {
-                    directoryMd = DirectoryMd.open(currentDirectory);
-                }
+                buildSite(
+                        Paths.get(line.hasOption("i") ?
+                                line.getOptionValue("i"):
+                                currentDirectory),
+                        line.hasOption("o")?
+                                Paths.get(line.getOptionValue("o")):
+                                Paths.get(currentDirectory, "_output"),
+                        line.hasOption("r")
+                        );
 
-                IDirectoryHtml directoryHtml = directoryMd.generateHtml();
-
-                if(line.hasOption("o")) {
-                    directoryHtml.save(Paths.get(line.getOptionValue("o")));
-                }
-                else{
-                    directoryHtml.save(Paths.get(currentDirectory,"_output"));
-                }
             }
         }
         catch(ParseException | SiteFormatException | IOException exp ) {
@@ -49,6 +42,12 @@ public class BuildSiteMain {
             logger.warning("stack trace: ");
             exp.printStackTrace();
         }
+    }
+
+    public static void buildSite(final Path inputDir, final Path outputDir, final boolean isRebuildAll) throws IOException, SiteFormatException {
+        DirectoryMd.open(inputDir)
+                .generateHtml()
+                .save(outputDir, isRebuildAll);
     }
 
     public static void help() {
@@ -66,6 +65,9 @@ public class BuildSiteMain {
                 .desc("Les fichiers en entrée sont récupérés dans le répertoire DIR/content. DIR vaut le répertoire " +
                         "courant par défaut. La présence des fichiers " +
                         "DIR/site.toml et DIR/content/index.md est nécessaire.")
+                .build());
+        options.addOption(Option.builder("r").longOpt("rebuild-all").numberOfArgs(0)
+                .desc("Recompile le projet dans sa globalité")
                 .build());
         return options;
     }
