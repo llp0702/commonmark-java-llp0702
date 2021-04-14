@@ -173,4 +173,21 @@ public class Hierarchie implements Serializable{
              }
         }
     }
+
+    @Override
+    public String toString(){
+        StringBuffer b = new StringBuffer();
+        Iterator<Entry<String, Pair<Integer,List<String>>>> itr = dependances.entrySet().iterator();
+        while(itr.hasNext())
+        {
+            Map.Entry<String, Pair<Integer,List<String>>> entry = itr.next();
+            b.append(entry.getKey() + ": \n");
+            for(String g : entry.getValue().getSecond()){
+                b.append("\t" +g + "\n");
+            }
+            b.append("///////////////\n");
+        }
+        return b.toString();
+    }
+    
 }
