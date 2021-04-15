@@ -5,6 +5,7 @@ import org.commonmark.Extension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.eclipse.jetty.util.IO;
 import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
@@ -63,13 +64,18 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return parser.parseReader(cmFile.getReader());
     }
 
-    @Override
-    public String parseAndConvert2Html(@NonNull final ICMFile cmFile) throws IOException {
+    private Node parseTomlMetadata(@NonNull final ICMFile cmFile) throws IOException {
         final Node resNode = parse(cmFile);
         final TomlVisitor tomlVisitor = new TomlVisitor();
 
         resNode.accept(tomlVisitor);
         cmFile.setTomlMetadataLocal(tomlVisitor.getData());
+        return resNode;
+    }
+
+    @Override
+    public String parseAndConvert2Html(@NonNull final ICMFile cmFile) throws IOException {
+        final Node resNode = parseTomlMetadata(cmFile);
 
         if (cmFile.isDraft())
             return "";
@@ -98,7 +104,8 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>" + body + "</body></html>";
     }
 
-    public Optional<Hierarchie> getActualHierarchie(@NonNull final ICMFile cmFile){
+    public Optional<Hierarchie> getActualHierarchie(@NonNull final ICMFile cmFile) throws IOException{
+        parseTomlMetadata(cmFile);
         final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
         final Optional<Path> template = searchTemplate(metaDataLocal);
         refreshHierarchie(cmFile,template);
@@ -120,15 +127,13 @@ public class ConverterMd2Html implements IConverterMd2Html {
 
     private Optional<Path> searchTemplate(final List<TomlTable> metaDataLocal){
         Optional<Path> template = searchPathEqual(templateFiles,"default.html");
-        if(metaDataLocal != null){
-            for (TomlTable metaData : metaDataLocal) {
-                if (metaData != null) {
-                    String curRes = metaData.getString("template");
-                    if (curRes != null) {
-                        template = searchPathEndsWith(templateFiles,curRes);
-                        if (template.isEmpty())
-                            break;
-                    }
+        for (TomlTable metaData : metaDataLocal) {
+            if (metaData != null) {
+                String curRes = metaData.getString("template");
+                if (curRes != null) {
+                    template = searchPathEndsWith(templateFiles, curRes);
+                    if (template.isEmpty())
+                        break;
                 }
             }
         }
