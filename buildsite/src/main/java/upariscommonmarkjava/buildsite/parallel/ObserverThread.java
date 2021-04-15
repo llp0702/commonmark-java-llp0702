@@ -10,18 +10,20 @@ public class ObserverThread <Type>{
         this.running = Math.min(nb_thread,elements.size());
         this.elements = elements;
         for(; nb_thread > 0 && !elements.isEmpty(); nb_thread--)
-            new NotifierThread<>(this, lambda).start(elements.poll());
+            new NotifierThread<>(this, lambda);
         lock();
     }
 
-    synchronized void notify(final NotifierThread<Type> notifierThread){
+    synchronized boolean notify(final NotifierThread<Type> notifierThread){
         if(elements.isEmpty()) {
             running--;
             if(running == 0)
                 this.notify();
+            return false;
         }
         else {
-            notifierThread.start(elements.poll());
+            notifierThread.setVarible(elements.poll());
+            return true;
         }
     }
 
