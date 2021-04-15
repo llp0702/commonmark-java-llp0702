@@ -121,11 +121,15 @@ public class DirectoryHtml implements IDirectoryHtml {
         saveHier(targetBasePath);
     }
 
-    private void compileFile(@NonNull final Path path,@NonNull final Path targetBasePath) throws IOException {
-        if(staticFilesPaths.contains(path)){
-            copyStaticFiles(targetBasePath, inputContentBasePath, true, path);
-        }else if(inputFilesMdPaths.contains(path)){
-            convertMd2HtmlAndCopyHrefs(targetBasePath, path);
+    protected void compileFile(@NonNull final Path path,@NonNull final Path targetBasePath){
+        try {
+            if (staticFilesPaths.contains(path)) {
+                copyStaticFiles(targetBasePath, inputContentBasePath, true, path);
+            } else if (inputFilesMdPaths.contains(path)) {
+                convertMd2HtmlAndCopyHrefs(targetBasePath, path);
+            }
+        } catch (IOException ignore) {
+
         }
     }
 

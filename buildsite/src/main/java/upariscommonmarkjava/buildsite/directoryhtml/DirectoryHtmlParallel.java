@@ -4,6 +4,7 @@ import lombok.NonNull;
 import upariscommonmarkjava.buildsite.parallel.IndependantQueue;
 import upariscommonmarkjava.buildsite.parallel.Needs;
 import upariscommonmarkjava.buildsite.parallel.NeedsException;
+import upariscommonmarkjava.buildsite.parallel.ObserverThread;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
@@ -68,7 +69,7 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
         try {
             final List<List<Path>> indQueue = buildIndependantQueue();
             for(final List<Path> list : indQueue){
-                System.out.println(list);
+                new ObserverThread<>(nb_thread, new LinkedList<>(list), path -> this.compileFile(path,targetBasePath));
             }
         }catch(NeedsException needsException){
 
