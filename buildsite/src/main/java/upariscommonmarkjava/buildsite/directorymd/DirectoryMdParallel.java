@@ -1,16 +1,10 @@
 package upariscommonmarkjava.buildsite.directorymd;
 
-import lombok.NonNull;
 import upariscommonmarkjava.buildsite.SiteFormatException;
-import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtmlParallel;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.theme.ITheme;
-import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
-
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +12,10 @@ public class DirectoryMdParallel implements IDirectoryMd {
     private final DirectoryMd directoryMd;
 
     private final int nb_thread;
+
+    public DirectoryMdParallel(final Path folderPath) throws SiteFormatException{
+        this(folderPath, Runtime.getRuntime().availableProcessors());
+    }
 
     public DirectoryMdParallel(final Path folderPath, int nb_thread) throws SiteFormatException{
         this.directoryMd = DirectoryMd.open(folderPath);

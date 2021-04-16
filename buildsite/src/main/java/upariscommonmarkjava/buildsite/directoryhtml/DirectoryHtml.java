@@ -77,7 +77,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         } catch (IOException ignored) {}
     }
 
-    private  void setHier(@NonNull final Path targetBasePath) {
+    protected void setHier(@NonNull final Path targetBasePath) {
         try{
             Optional<File> hierOpt = Optional.empty();
             File file = targetBasePath.toFile();
@@ -106,19 +106,21 @@ public class DirectoryHtml implements IDirectoryHtml {
         if(hashCode() == hier.hashCode()){
             return;
         }
-        for(Path p :  directory){
-            if(hier.getHashCourant(p.toString()) != getHash(p)){
-                compileFile(p,targetBasePath);
-                for(String dependance : hier.getDepCourant(p.toString())){
+        for(final Path path :  directory){
+            if(hier.getHashCourant(path.toString()) != getHash(path)){
+                compileFile(path,targetBasePath);
+                final List<String> list =  hier.getDepCourant(path.toString());
+
+                for(int i = 0; i < list.size(); i++){
+                    final String dependance = list.get(i);
                     final Path dep = Path.of(dependance);
                     compileFile(dep,targetBasePath);
                     hier.setHashCourant(dependance,getHash(dep));
                 }
-                hier.setHashCourant(p.toString(),getHash(p));
+                hier.setHashCourant(path.toString(),getHash(path));
             }
         }
-        hier.setGlobalHash(hashCode());
-        saveHier(targetBasePath);
+        saveGlobalHierarchie(targetBasePath);
     }
 
     protected void compileFile(@NonNull final Path path,@NonNull final Path targetBasePath){
@@ -280,7 +282,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         return Integer.valueOf(res).hashCode();
     }
 
-    private int getHash(Path input){
+    protected int getHash(Path input){
         String s = "";
         try{
             s = Files.readString(input);
