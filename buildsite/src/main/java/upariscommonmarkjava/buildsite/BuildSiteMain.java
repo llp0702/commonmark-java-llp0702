@@ -17,6 +17,7 @@ public class BuildSiteMain {
         final Logger logger = Logger.getAnonymousLogger();
         final CommandLineParser parser = new DefaultParser();
         final String currentDirectory = System.getProperty("user.dir");
+
         try {
             final CommandLine line = parser.parse( options, args, false);
             if(line.hasOption("h")){
