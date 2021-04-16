@@ -5,6 +5,7 @@ apply {
 }
 
 mainClassName = 'upariscommonmarkjava.SsgMain'
+
 dependencies {
     implementation project(':md2html')
     implementation project(':buildsite')
@@ -36,6 +37,7 @@ allprojects {
     apply plugin: "java"
     apply plugin: "jacoco"
     apply plugin: "idea"
+
     dependencies {
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
         testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -54,6 +56,9 @@ allprojects {
 
         implementation 'nu.validator:validator:20.6.30'
         testImplementation 'nu.validator:validator:20.6.30'
+
+        implementation 'org.asciidoctor:asciidoctorj:2.4.3'
+        testImplementation 'org.asciidoctor:asciidoctorj:2.4.3'
     }
     tasks.named('test') {
         useJUnitPlatform()
@@ -78,6 +83,5 @@ allprojects {
         }
     }
     codeCoverageReport.dependsOn { test }
-
-
+    
 }

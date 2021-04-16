@@ -39,19 +39,26 @@ build-and-deploy:
     paths:
       - .gradle
 
-code-coverage-md2html 1/2:
+code-coverage-md2html 1/3:
   rules:
    - when: manual
   stage: test
   image: alpine:latest
   script: cat md2html/build/reports/jacoco/test/html/index.html
 
-code-coverage-buildsite 2/2:
+code-coverage-buildsite 2/3:
   rules:
    - when: manual
   stage: test
   image: alpine:latest
   script: cat buildsite/build/reports/jacoco/test/html/index.html
+
+code-coverage-ascii2html 3/3:
+  rules:
+   - when: manual
+  stage: test
+  image: alpine:latest
+  script: cat ascii2html/build/reports/jacoco/test/html/index.html
 
 upload:
   stage: upload

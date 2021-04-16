@@ -1,3 +1,6 @@
+array = ["abs","cde","ghz"]
+
 [general]
 title = "A Minimal Site"
 author = "The SSG Team"
+
