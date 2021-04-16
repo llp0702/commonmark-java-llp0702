@@ -40,7 +40,6 @@ public class DirectoryHtml implements IDirectoryHtml {
     @Getter
     protected final List<Path> inputFilesMdPaths;
 
-
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
     protected List<Path> templatesPaths;
@@ -123,11 +122,18 @@ public class DirectoryHtml implements IDirectoryHtml {
         saveGlobalHierarchie(targetBasePath);
     }
 
+    private void compileFileTheme(final Path target, final ITheme theme, final Path path) throws IOException{
+        copyStaticFiles(target ,theme.getBasePath().resolve("static"), false, path);
+    }
+
     protected void compileFile(@NonNull final Path path,@NonNull final Path targetBasePath){
         try {
             if (staticFilesPaths.contains(path)) {
                 copyStaticFiles(targetBasePath, inputContentBasePath, true, path);
-            } else if (inputFilesMdPaths.contains(path)) {
+            } else if(optTheme.isPresent() && optTheme.get().isValid() && optTheme.get().getStaticPaths().contains(path)) {
+                compileFileTheme(targetBasePath, optTheme.get(), path);
+            }
+            else if (inputFilesMdPaths.contains(path)) {
                 convertMd2HtmlAndCopyHrefs(targetBasePath, path);
             }
         } catch (IOException ignore) {
@@ -181,7 +187,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         applyToValid(optTheme, theme -> {
             try {
                 for(final Path staticFile: theme.getStaticPaths()){
-                    copyStaticFiles(targetBasePath ,theme.getBasePath().resolve("static"), false, staticFile);
+                    compileFileTheme(targetBasePath,theme, staticFile);
                 }
             } catch (IOException e) {
                 logger.warning("Exception when trying to copy static files");

@@ -20,6 +20,7 @@ class DirectoryHtmlTest {
 
             assertNotNull(correct_html);
             assertTrue(SimilaireDirectoryTest.isSimilare(correct_html,correct_site));
+            assertDoesNotThrow(() ->  correct_html.save(Paths.get(out),true));
             assertDoesNotThrow(() ->  correct_html.save(Paths.get(out),false));
             assertTrue(SimilaireDirectoryTest.isSimilare(correct_html,correct_site));
         }

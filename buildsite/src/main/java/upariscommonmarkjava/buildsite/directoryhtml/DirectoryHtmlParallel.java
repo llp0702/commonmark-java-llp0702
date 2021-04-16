@@ -40,18 +40,14 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
             }
         }
 
-        /*
-        TODO
-            applyToValid(optTheme, theme -> {
-            try {
-                for(final Path staticFile: theme.getStaticPaths()){
-                    copyStaticFiles(targetBasePath ,theme.getBasePath().resolve("static"), false, staticFile);
+        applyToValid(optTheme, theme -> {
+            for (final Path themeFile : theme.getStaticPaths()) {
+                if (rebuild || hier.getHashCourant(themeFile.toString()) != getHash(themeFile)) {
+                    refreshHash(themeFile);
+                    tableConstraints.put(themeFile.toString(), new Needs<>(themeFile));
                 }
-            } catch (IOException e) {
-                logger.warning("Exception when trying to copy static files");
-                e.printStackTrace();
-            }});
-        */
+            }
+        });
 
         for(final Path inputMdFile: inputFilesMdPaths) {
             final Optional<Hierarchie> hier = convertMd2HtmlGethierarchy(inputMdFile);
