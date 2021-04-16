@@ -8,20 +8,20 @@ import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.TomlFile;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
-import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class DirectoryMd implements IDirectoryMd{
     @Getter
     protected final List<Path> mdFilesPaths;
+
+    @Getter
+    protected final List<Path> asciiFilesPaths;
 
     @Getter
     protected final List<Path> staticFilesPaths;
@@ -102,7 +102,9 @@ public class DirectoryMd implements IDirectoryMd{
                     parcoursContent(currentPath);
                 }else if (currentPath.getFileName().toString().endsWith(".md")) {
                     mdFilesPaths.add(currentPath);
-                }else{
+                } else if (currentPath.getFileName().toString().endsWith(".adoc")) {
+                    asciiFilesPaths.add(currentPath);
+                } else{
                     staticFilesPaths.add(currentPath);
                 }
             });
@@ -116,12 +118,14 @@ public class DirectoryMd implements IDirectoryMd{
         this.tomlOptions = initOption(toml);
         mdFilesPaths = new ArrayList<>();
         staticFilesPaths = new ArrayList<>();
+        asciiFilesPaths = new ArrayList<>();
         parcoursContent(content);
     }
 
-    protected IDirectoryHtml generateHtml(BuilderDirectoryHtml builder){
-        return builder.apply(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                Collections.emptyList(), Optional.empty());
+
+    protected IDirectoryHtml generateHtml() {
+        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.asciiFilesPaths,  Collections.emptyList(), Optional.empty());
     }
 
     public IDirectoryHtml generateHtml() {

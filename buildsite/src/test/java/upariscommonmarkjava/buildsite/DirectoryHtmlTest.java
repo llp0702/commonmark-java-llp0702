@@ -1,12 +1,12 @@
 package upariscommonmarkjava.buildsite;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.SimilaireDirectoryTest;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +33,7 @@ class DirectoryHtmlTest {
     @Test
     public void minimalTest(){
         testDirectoryHtml("src/test/resources/minimal","src/test/resources/hierarchie/correct/_output");
+        try{ teardown(); } catch (IOException ignore){}
     }
 
     @Test
@@ -54,4 +55,13 @@ class DirectoryHtmlTest {
     public void miniPlusTest(){
         testDirectoryHtml("src/test/resources/minimalPlus","src/test/resources/hierarchie/correct/_output5");
     }
+
+
+    static void teardown() throws IOException {
+        File testFile = new File(".");
+        String CURRENT_PATH = testFile.getCanonicalPath() + "/src/test/resources/";
+        File firstConvertedFile = new File(CURRENT_PATH + "minimal/content/random.html");
+        firstConvertedFile.deleteOnExit();
+    }
 }
+
