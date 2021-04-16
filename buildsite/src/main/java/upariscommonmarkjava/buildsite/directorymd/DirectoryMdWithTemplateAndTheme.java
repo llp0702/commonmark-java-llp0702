@@ -33,7 +33,6 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
         parcoursThemes();
     }
 
-
     private void parcoursThemes() {
         try(final Stream<Path> themesPaths = Files.list(themesBasePath)){
             themesPaths.forEach(themePath ->{
@@ -49,10 +48,9 @@ public class DirectoryMdWithTemplateAndTheme  extends DirectoryMdWithTemplate{
         }
     }
 
-
     @Override
-    public IDirectoryHtml generateHtml() {
-        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+    protected IDirectoryHtml generateHtml(BuilderDirectoryHtml builder){
+        return builder.apply(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
                 this.asciiFilesPaths, this.templatesPaths,  getTheme());
     }
 

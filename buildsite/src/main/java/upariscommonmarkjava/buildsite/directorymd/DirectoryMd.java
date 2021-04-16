@@ -111,7 +111,6 @@ public class DirectoryMd implements IDirectoryMd{
         }catch (IOException e){
             logger.warning("IOException during parcoursThemes");
         }
-
     }
 
     protected DirectoryMd(final Path toml,final Path content) throws IOException {
@@ -124,9 +123,13 @@ public class DirectoryMd implements IDirectoryMd{
     }
 
 
+    protected IDirectoryHtml generateHtml(BuilderDirectoryHtml builder) {
+        return builder.apply(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
+                this.asciiFilesPaths,  Collections.emptyList(), Optional.empty());
+    }
+
     public IDirectoryHtml generateHtml() {
-        return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                this.asciiFilesPaths, Collections.emptyList(), Optional.empty());
+        return generateHtml(DirectoryHtml::new);
     }
 
     @Override

@@ -24,6 +24,10 @@ public final class Needs<Type> {
         this(value,toArrayList(constraints));
     }
 
+    public final void addNeededValue(Type value){
+        this.valusNeeded.add(value);
+    }
+
     public final Type getValue(){
         return this.value;
     }

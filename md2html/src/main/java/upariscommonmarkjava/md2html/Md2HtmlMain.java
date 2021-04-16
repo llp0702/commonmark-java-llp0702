@@ -17,25 +17,27 @@ public class Md2HtmlMain {
     public static final String OUTPUT_DIR = "_output/";
 
     public static void main(String[] args) {
-        Logger logger = Logger.getAnonymousLogger();
+        final Logger logger = Logger.getAnonymousLogger();
         // create Options object
-        Options options = md2htmlMainOptions();
-        CommandLineParser parser = new DefaultParser();
+        final Options options = md2htmlMainOptions();
+        final CommandLineParser parser = new DefaultParser();
+
         try {
             CommandLine line = parser.parse( options, args, false );
             if( line.hasOption("h")){
-                HelpFormatter formatter = new HelpFormatter();
+                final HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "ssg build [filename] [Options]", options );
             }else{
-                if(line.getArgs().length==0){
+                if(line.getArgs().length == 0){
                     throw new ParseException("Unspecified input file");
                 }
-                String fileInputPath = line.getArgs()[0];
+                final String fileInputPath = line.getArgs()[0];
 
                 String outputDir = OUTPUT_DIR;
                 if( line.hasOption( "o" ) ) {
                     outputDir = line.getOptionValue("o");
-                    if(!outputDir.endsWith("/"))outputDir += "/";
+                    if(!outputDir.endsWith("/"))
+                        outputDir += "/";
                 }
 
                 workMd2Html(fileInputPath, outputDir);
@@ -53,7 +55,7 @@ public class Md2HtmlMain {
     }
 
     public static Options md2htmlMainOptions(){
-        Options options = new Options();
+        final Options options = new Options();
         options.addOption(Option.builder("h").longOpt("help").desc("Affiche ce message" ).build() );
         options.addOption( Option.builder("o").longOpt("output-dir").numberOfArgs(1).argName("DIR")
                 .desc("Les fichiers sont produits dans le répertoire _output/ par défaut, ou dans le répertoire DIR ")
@@ -62,12 +64,12 @@ public class Md2HtmlMain {
     }
 
     public static void workMd2Html(final String filePath, final String outputDir) throws IOException {
-        Path inputPath = Paths.get(filePath);
-        String filenameInput = inputPath.getFileName().toString();
-        String filenameOutput = filenameInput.substring(0, filenameInput.lastIndexOf('.'))+".html";
-        Path outputPath = Paths.get(outputDir+filenameOutput);
-        ICMFile cmFile = CMFile.fromPath(inputPath);
-        IConverterMd2Html converterMd2Html = new ConverterMd2Html();
+        final Path inputPath = Paths.get(filePath);
+        final String filenameInput = inputPath.getFileName().toString();
+        final String filenameOutput = filenameInput.substring(0, filenameInput.lastIndexOf('.'))+".html";
+        final Path outputPath = Paths.get(outputDir+filenameOutput);
+        final ICMFile cmFile = CMFile.fromPath(inputPath);
+        final IConverterMd2Html converterMd2Html = new ConverterMd2Html();
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile,outputPath);
     }
 }

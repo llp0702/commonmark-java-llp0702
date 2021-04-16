@@ -15,4 +15,5 @@ public interface IDirectoryMd  {
     Optional<Path> getTemplateBasePath();
     IDirectoryHtml generateHtml();
     List<ITheme> getThemes();
+    List<Path> getAsciiFilesPaths();
 }
