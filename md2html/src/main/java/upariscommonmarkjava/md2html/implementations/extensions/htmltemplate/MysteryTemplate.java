@@ -7,13 +7,14 @@ import java.io.File;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 public class MysteryTemplate extends AdvancedHtmlTemplate{
 
     private static final String PATTERN_LIST_FILE = "list_files\\([ ]*\"(.*?)\"[ ]*,[ ]*(true|false)\\)";
 
-    public MysteryTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
+    public MysteryTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<Map<String,Object>> tomlMetadata, List<Path> templates, String content) {
         super(md2HtmlContent, metadataGlobal, tomlMetadata, templates, content);
     }
 

@@ -6,6 +6,7 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +16,7 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
     protected static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
     protected static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
 
-    public AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
+    public AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<Map<String,Object>> tomlMetadata, List<Path> templates, String content) {
         super(md2HtmlContent, metadataGlobal, tomlMetadata, templates, content);
     }
 
@@ -46,7 +47,7 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
     }
 
     protected String matchForTomlTable(final String element, final String innerContent, final TomlTable table) {
-        return new AdvancedHtmlTemplate(md2HtmlContent,metadataGlobal,List.of(table),this.templates,
+        return new AdvancedHtmlTemplate(md2HtmlContent,metadataGlobal,buildMetaDataLocal(List.of(table)),this.templates,
                 matchAndReplace("\\{\\{[ ]*" + element + "(\\.[^ ]+?)[ ]*\\}\\}", innerContent,
                         m -> "{{ metadata" + m.group(1).trim() + " }}")).apply();
     }

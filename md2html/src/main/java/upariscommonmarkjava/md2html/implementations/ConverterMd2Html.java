@@ -8,6 +8,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.eclipse.jetty.util.IO;
 import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
+import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.HtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
@@ -19,10 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 
@@ -158,7 +156,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
             logger.warning(ioe.getMessage());
         }
 
-        return new AdvancedHtmlTemplate(htmlContent,globalMetadata.get(),metaDataLocal,templateFiles,file).apply();
+        return new AdvancedHtmlTemplate(htmlContent,globalMetadata.get(), HtmlTemplate.buildMetaDataLocal(metaDataLocal),templateFiles,file).apply();
     }
 
     private static Optional<Path> searchPathEqual(final List<Path> templateFiles, final String pattern) {
