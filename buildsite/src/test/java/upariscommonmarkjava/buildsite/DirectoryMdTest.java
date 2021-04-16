@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import upariscommonmarkjava.SimilaireDirectoryTest;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
@@ -71,8 +72,8 @@ class DirectoryMdTest {
     {
         final IDirectoryHtml correct_html = correct_site.generateHtml();
         if(correct_html instanceof DirectoryHtml){
-            assertTrue(DirectoryHtmlTest.isSimilare((DirectoryHtml) correct_html,correct_site));
-            assertFalse(DirectoryHtmlTest.isSimilare((DirectoryHtml)correct_html,incorrect_site));
+            assertTrue(SimilaireDirectoryTest.isSimilare((DirectoryHtml) correct_html,correct_site));
+            assertFalse(SimilaireDirectoryTest.isSimilare((DirectoryHtml)correct_html,incorrect_site));
         }
     }
 }
