@@ -1,27 +1,32 @@
 package upariscommonmarkjava.buildsite.parallel;
 
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class ObserverThread <Type>{
     private final Queue<Type> elements;
-    private int running;
+    private final AtomicInteger running;
     public ObserverThread(int nb_thread, final Queue<Type> elements, final Consumer<Type> lambda){
-        this.running = Math.min(nb_thread,elements.size());
+        this.running = new AtomicInteger(Math.min(nb_thread,elements.size()));
         this.elements = elements;
-        for(; nb_thread > 0 && !elements.isEmpty(); nb_thread--)
+        for(; nb_thread > 0; nb_thread--) {
+            if(elements.isEmpty()) {
+                break;
+            }
             new NotifierThread<>(this, lambda);
-        lock();
+        }
+
+        if(!(this.running.get() == 0 || elements.isEmpty()))
+            lock();
     }
 
     synchronized boolean notify(final NotifierThread<Type> notifierThread){
-        if(elements.isEmpty()) {
-            running--;
-            if(running == 0)
+        if (elements.isEmpty()) {
+            if (running.decrementAndGet() == 0)
                 this.notify();
             return false;
-        }
-        else {
+        } else {
             notifierThread.setVarible(elements.poll());
             return true;
         }
