@@ -61,7 +61,7 @@ public class DirectoryMdWithTemplate extends DirectoryMd {
     @Override
     public IDirectoryHtml generateHtml() {
         return new DirectoryHtml(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
-                this.templatesPaths, Optional.empty());
+                this.asciiFilesPaths, this.templatesPaths, Optional.empty());
     }
 
 }

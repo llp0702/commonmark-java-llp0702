@@ -8,6 +8,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import java.io.InputStream;
+import java.util.logging.Logger;
 
 @AllArgsConstructor
 public class HTML5Validator {
@@ -16,7 +17,7 @@ public class HTML5Validator {
     private final MyHtml5ValidatorErrorHandler errorHandler = new MyHtml5ValidatorErrorHandler();
 
     public boolean validate() {
-
+        Logger logger = Logger.getLogger(HTML5Validator.class.getName());
         SimpleDocumentValidator validator = new SimpleDocumentValidator();
         String schemaUrl = "http://s.validator.nu/html5-all.rnc";
 
@@ -26,8 +27,10 @@ public class HTML5Validator {
             validator.setUpValidatorAndParsers(errorHandler, false, false);
             validator.checkHtmlInputSource(source);
         } catch (Exception e) {
+            logger.info("An error occurred señor");
             return false;
         }
+        logger.info("An error did not occur señor");
         return !errorHandler.hasErrors();
     }
 

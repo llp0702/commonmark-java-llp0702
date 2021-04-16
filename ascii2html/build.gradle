@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'org.asciidoctor.jvm.convert' version '3.3.0'
+}
+
+group 'uparis'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    implementation project(':htmlvalidator')
+}
+
+test {
+    useJUnitPlatform()
+}

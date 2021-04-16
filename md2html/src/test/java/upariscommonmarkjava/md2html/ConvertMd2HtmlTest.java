@@ -50,7 +50,7 @@ class ConvertMd2HtmlTest {
     @Test
     void testParseAndConvert2HtmlAndSave() throws IOException {
         //Given
-        final String dest = "/tmp/output.html";
+        final String dest = "/tmp/output1.html";
         final Path destPath = Paths.get(dest);
 
         //When

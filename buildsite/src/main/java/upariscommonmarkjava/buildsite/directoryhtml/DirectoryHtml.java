@@ -2,6 +2,7 @@ package upariscommonmarkjava.buildsite.directoryhtml;
 
 import lombok.Getter;
 import lombok.NonNull;
+import upariscommonmarkjava.ascii2html.Ascii2HtmlMain;
 import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.CMFile;
 import upariscommonmarkjava.md2html.implementations.ConverterMd2Html;
@@ -38,6 +39,8 @@ public class DirectoryHtml implements IDirectoryHtml {
     @Getter
     private final List<Path> inputFilesMdPaths;
 
+    @Getter
+    protected List<Path> asciiFilesPaths;
 
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
@@ -49,10 +52,12 @@ public class DirectoryHtml implements IDirectoryHtml {
 
     public DirectoryHtml(@NonNull final Path inputContentBasePath, @NonNull final ITOMLFile tomlOptions,
                             @NonNull final List<Path> mdFilesPaths, @NonNull final List<Path> staticFilesPaths,
-                            @NonNull final List<Path> templatesPaths, @NonNull final Optional<ITheme> theme) {
+                            @NonNull final List<Path> asciiFilesPath, @NonNull final List<Path> templatesPaths,
+                            @NonNull final Optional<ITheme> theme) {
         this.inputContentBasePath = inputContentBasePath;
         this.tomlOptions = tomlOptions;
         this.inputFilesMdPaths = mdFilesPaths;
+        this.asciiFilesPaths = asciiFilesPath;
         this.staticFilesPaths = staticFilesPaths;
         this.templatesPaths = templatesPaths;
         this.optTheme = theme;
@@ -70,6 +75,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         directory.addAll(mdFilesPaths);
         directory.addAll(templatesPaths);
         directory.addAll(staticFilesPaths);
+        directory.addAll(asciiFilesPath);
         try {
             directory.add(Paths.get(tomlOptions.getStringPath()));
         } catch (IOException e) {}
@@ -124,6 +130,8 @@ public class DirectoryHtml implements IDirectoryHtml {
             copyStaticFiles(targetBasePath, inputContentBasePath, true, p);
         }else if(inputFilesMdPaths.contains(p)){
             convertMd2HtmlAndCopyHrefs(targetBasePath, p);
+        }else if(asciiFilesPaths.contains(p)) {
+            convertAscii2HtmlAndCopyHrefs(targetBasePath);
         }
     }
 
@@ -150,6 +158,7 @@ public class DirectoryHtml implements IDirectoryHtml {
 
 
     private void save(@NonNull final Path targetBasePath) throws IOException {
+        convertAscii2HtmlAndCopyHrefs(targetBasePath);
 
         final File tmp = new File(targetBasePath.toString());
         if(!tmp.mkdirs()){
@@ -203,7 +212,23 @@ public class DirectoryHtml implements IDirectoryHtml {
         return outputPath;
     }
 
+    private void convertAscii2HtmlAndCopyHrefs(@NonNull Path targetBasePath) throws IOException {
+        for(Path inputAsciiFile: asciiFilesPaths) {
+            Path outputPath = callAscii2Html(targetBasePath, inputAsciiFile);
+            copyHrefsIfAbsent(targetBasePath, outputPath);
+        }
+    }
+
+    private Path callAscii2Html(@NonNull Path targetBasePath, @NonNull Path inputAsciiFile) throws IOException {
+        Path outputPath = extension2Html(targetBasePath.resolve(inputContentBasePath.relativize(inputAsciiFile)));
+        Files.createDirectories(outputPath.getParent());
+        Ascii2HtmlMain converter = new Ascii2HtmlMain();
+        converter.convert(inputAsciiFile.toFile(), targetBasePath);
+        return outputPath;
+    }
+
     public static boolean isUrl(final String url) {
+        /* Try creating a valid URL */
         try {
             new URL(url).toURI();
         }

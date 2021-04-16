@@ -71,8 +71,8 @@ class DirectoryMdTest {
     {
         final IDirectoryHtml correct_html = correct_site.generateHtml();
         if(correct_html instanceof DirectoryHtml){
-            assertTrue(DirectoryHtmlTest.isSimilare((DirectoryHtml) correct_html,correct_site));
-            assertFalse(DirectoryHtmlTest.isSimilare((DirectoryHtml)correct_html,incorrect_site));
+            assertTrue(DirectoryHtmlTest.isSimilar((DirectoryHtml) correct_html,correct_site));
+            assertFalse(DirectoryHtmlTest.isSimilar((DirectoryHtml)correct_html,incorrect_site));
         }
     }
 }
