@@ -5,7 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import upariscommonmarkjava.SimilaireDirectoryTest;
 import upariscommonmarkjava.buildsite.SiteFormatException;
+import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtml;
 import upariscommonmarkjava.buildsite.directoryhtml.DirectoryHtmlParallel;
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMdParallel;
 
 import java.nio.file.Paths;

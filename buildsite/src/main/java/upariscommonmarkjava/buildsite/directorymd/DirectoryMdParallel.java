@@ -58,4 +58,9 @@ public class DirectoryMdParallel implements IDirectoryMd {
     public List<ITheme> getThemes() {
         return directoryMd.getThemes();
     }
+
+    @Override
+    public List<Path> getAsciiFilesPaths() {
+        return directoryMd.getAsciiFilesPaths();
+    }
 }

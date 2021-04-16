@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @FunctionalInterface
 interface BuilderDirectoryHtml{
-    DirectoryHtml apply(Path inputContentBasePath, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFilesPaths, List<Path> templatesPaths, Optional<ITheme> theme);
+    DirectoryHtml apply(Path inputContentBasePath, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFilesPaths, List<Path> asciiFilesPaths, List<Path> templatesPaths, Optional<ITheme> theme);
 }

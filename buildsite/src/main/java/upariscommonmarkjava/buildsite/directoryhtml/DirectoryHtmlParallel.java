@@ -19,8 +19,9 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
 
     public DirectoryHtmlParallel(@NonNull final Path inputContentBasePath, @NonNull final ITOMLFile tomlOptions,
                                  @NonNull final List<Path> mdFilesPaths, @NonNull final List<Path> staticFilesPaths,
+                                 @NonNull final List<Path> asciiFilesPath,
                                  @NonNull final List<Path> templatesPaths, @NonNull final Optional<ITheme> theme){
-        super(inputContentBasePath,tomlOptions,mdFilesPaths,staticFilesPaths,templatesPaths,theme);
+        super(inputContentBasePath,tomlOptions,mdFilesPaths, staticFilesPaths,asciiFilesPath, templatesPaths,theme);
     }
 
     private List<List<Path>> buildIndependantQueue(boolean rebuild) throws NeedsException {

@@ -13,7 +13,7 @@ import java.util.List;
 
 class IndependantQueueTest {
 
-    private static <Type> List<Needs<Type>> arrayListOf(Needs<Type>... elements){
+    private static <Type> List<Needs<Type>> arrayListOf(final Needs<Type>... elements){
         final List<Needs<Type>> list = new ArrayList<>();
         Collections.addAll(list, elements);
         return list;
