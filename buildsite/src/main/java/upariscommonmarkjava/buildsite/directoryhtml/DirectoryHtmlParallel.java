@@ -23,28 +23,23 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
         super(inputContentBasePath,tomlOptions,mdFilesPaths,staticFilesPaths,templatesPaths,theme);
     }
 
-    private List<List<Path>> buildIndependantQueue() throws NeedsException {
+    private List<List<Path>> buildIndependantQueue(boolean rebuild) throws NeedsException {
         final HashMap<String, Needs<Path>> tableConstraints = new HashMap<>();
 
         for(final Path staticFile : this.staticFilesPaths){
-            refreshHash(staticFile);
-            tableConstraints.put(staticFile.toString(), new Needs<>(staticFile));
-        }
-
-        for(final Path inputMdFile: inputFilesMdPaths) {
-            refreshHash(inputMdFile);
-            tableConstraints.put(inputMdFile.toString(), new Needs<>(inputMdFile));
-        }
-
-        for(final Path inputMdFile: inputFilesMdPaths) {
-            final Optional<Hierarchie> hier = convertMd2HtmlGethierarchy(inputMdFile);
-            if(hier.isPresent())
-            {
-                for(final String dep : hier.get().getDepCourant(inputMdFile.toString())) {
-                    tableConstraints.get(dep).addNeededValue(inputMdFile);
-                }
+            if(rebuild || hier.getHashCourant(staticFile.toString()) != getHash(staticFile)) {
+                refreshHash(staticFile);
+                tableConstraints.put(staticFile.toString(), new Needs<>(staticFile));
             }
         }
+
+        for(final Path inputMdFile: inputFilesMdPaths) {
+            if(rebuild || hier.getHashCourant(inputMdFile.toString()) != getHash(inputMdFile)) {
+                refreshHash(inputMdFile);
+                tableConstraints.put(inputMdFile.toString(), new Needs<>(inputMdFile));
+            }
+        }
+
         /*
         TODO
             applyToValid(optTheme, theme -> {
@@ -57,28 +52,47 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
                 e.printStackTrace();
             }});
         */
+
+        for(final Path inputMdFile: inputFilesMdPaths) {
+            final Optional<Hierarchie> hier = convertMd2HtmlGethierarchy(inputMdFile);
+            if(hier.isPresent())
+            {
+                for(final String dep : hier.get().getDepCourant(inputMdFile.toString())) {
+                    tableConstraints.get(dep).addNeededValue(inputMdFile);
+                }
+            }
+        }
+
         final List<Needs<Path>> constraints = new ArrayList<>();
         for(final String key : tableConstraints.keySet()) {
             constraints.add(tableConstraints.get(key));
         }
         return IndependantQueue.generate(constraints);
     }
+
     @Override
-    protected void save(@NonNull final Path targetBasePath) throws IOException {
+    public void save(@NonNull final Path targetBasePath,boolean rebuild) throws IOException  {
+        setHier(targetBasePath);
+        if(!rebuild && hashCode() == hier.hashCode()){
+            return;
+        }
+
         createFolder(targetBasePath);
+
         try {
-            final List<List<Path>> indQueue = buildIndependantQueue();
+            final List<List<Path>> indQueue = buildIndependantQueue(rebuild);
             for(final List<Path> list : indQueue){
                 new ObserverThread<>(nb_thread, new LinkedList<>(list), path -> this.compileFile(path,targetBasePath));
             }
         }catch(NeedsException needsException){
 
         }
-
-        saveGlobalHierarchie(targetBasePath);
     }
 
-    public void setNbThread(final int nb_thread){
-        this.nb_thread = nb_thread;
+    public void setNbThread(final int nb_thread) {
+        if(nb_thread > 0)
+            this.nb_thread = nb_thread;
+        else
+            throw new Error("Nombre de thread invalide");
     }
 }
