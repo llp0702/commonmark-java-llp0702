@@ -1,6 +1,5 @@
 package upariscommonmarkjava.md2html.implementations.extensions.htmltemplate;
 
-import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.io.File;
@@ -32,39 +31,39 @@ public class MysteryTemplate extends AdvancedHtmlTemplate{
         final boolean rec = this.evalBoolean(bool);
         ArrayList<String> files = list_files(directory, rec);
 
-        
-
         return "";
     }
 
-    private ArrayList<String> list_files(String directory, boolean b) {
+    /**
+     * Renvoie les chemins relatifs des fichiers contnenus dans le répertoire passé en argument
+     *
+     * @param directory repértoire cible
+     * @param rec chercher recursivement tous les fichiers dans les sous répertoires de directory
+     * @return
+     */
+    public ArrayList<String> list_files(String directory, boolean rec) {
+       return list_files(directory, rec, "");
+    }
 
-        File current = new File(directory);
+    private ArrayList<String> list_files(String directory, boolean rec, String parent) {
         ArrayList<String> result = new ArrayList<>();
+        File current = new File(directory);
         if (!current.isDirectory())
-            return new ArrayList<>();
-        ArrayList<String> files = new ArrayList<>();
-        ArrayList<String> directiories = new ArrayList<>();
-        if (b) {
-            for (String filename : current.list()) {
-                File tmp = new File(filename);
-                if (tmp.isDirectory())
-                    directiories.add(filename);
-                else
-                    files.add(filename);
-            }
+            return result;
 
-            for (String dirname : directiories)
-                result.addAll(list_files(dirname, true));
-            result.addAll(files);
-        }
-        else {
-            for (String file : current.list()) {
-                File tmp = new File(file);
-                if (!tmp.isDirectory())
-                    result.add(file);
+        File[] files = current.listFiles();
+        if (rec) {
+
+            for (File f : files) {
+                if (f.isDirectory())
+                    result.addAll(list_files(f.getAbsolutePath(), true, parent+f.getName()+"/"));
             }
+        }
+        for (File f : files) {
+            if (!f.isDirectory())
+                result.add(parent+f.getName());
         }
         return result;
     }
+
 }
