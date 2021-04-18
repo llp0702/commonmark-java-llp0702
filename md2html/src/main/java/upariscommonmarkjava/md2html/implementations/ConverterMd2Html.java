@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.IO;
 import org.tomlj.TomlTable;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.AdvancedHtmlTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.HtmlTemplate;
+import upariscommonmarkjava.md2html.implementations.extensions.htmltemplate.MysteryTemplate;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlMetaParser;
 import upariscommonmarkjava.md2html.implementations.extensions.toml.TomlVisitor;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
@@ -156,7 +157,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
             logger.warning(ioe.getMessage());
         }
 
-        return new AdvancedHtmlTemplate(htmlContent,globalMetadata.get(), HtmlTemplate.buildMetaDataLocal(metaDataLocal),templateFiles,file).apply();
+        return new MysteryTemplate(htmlContent,globalMetadata.get(), HtmlTemplate.buildMetaDataLocal(metaDataLocal),templateFiles,file).apply();
     }
 
     private static Optional<Path> searchPathEqual(final List<Path> templateFiles, final String pattern) {

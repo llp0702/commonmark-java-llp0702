@@ -21,7 +21,10 @@ public class MetaDataValue implements IMetaData {
 
     @Override
     public List<Object> toList() {
-        logger.warning("Not iterable ");
+        if(value instanceof List)
+            return (List<Object>) value;
+
+        logger.warning("Not iterable " + value.getClass());
         return new ArrayList<>();
     }
 }
