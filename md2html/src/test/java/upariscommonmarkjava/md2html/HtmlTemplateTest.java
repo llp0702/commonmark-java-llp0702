@@ -32,7 +32,7 @@ class HtmlTemplateTest {
         }
     }
 
-    private String getResult(final String testName)
+    protected String getResult(final String testName)
     {
         final ArrayList<Path> lp = new ArrayList<>();
         lp.add(Paths.get(directory, testName + "/default.html"));

@@ -9,9 +9,7 @@ import upariscommonmarkjava.md2html.interfaces.extensions.htmltemplate.IHtmlTemp
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -22,14 +20,21 @@ public class HtmlTemplate implements IHtmlTemplate {
 
     public static final Logger logger = Logger.getLogger("Html Template logger");
 
+    public static List<Map<String,Object>> buildMetaDataLocal(final List<TomlTable> metadata){
+        final List<Map<String,Object>> list = new ArrayList<>();
+        for(TomlTable meta : metadata)
+            list.add(meta.toMap());
+        return list;
+    }
+
     protected final String md2HtmlContent;
     protected final ITOMLFile metadataGlobal;
-    protected final List<TomlTable> tomlMetadata;
+    protected final List<Map<String,Object>> tomlMetadata;
     protected final List<Path> templates;
 
     protected String templateContent;
 
-    protected HtmlTemplate(final String md2HtmlContent, final ITOMLFile metadataGlobal, final List<TomlTable> tomlMetadata, final List<Path> templates, final String content){
+    protected HtmlTemplate(final String md2HtmlContent, final ITOMLFile metadataGlobal, final List<Map<String,Object>> tomlMetadata, final List<Path> templates, final String content){
         this.md2HtmlContent = md2HtmlContent;
         this.metadataGlobal = metadataGlobal;
         this.tomlMetadata = tomlMetadata;
@@ -58,9 +63,9 @@ public class HtmlTemplate implements IHtmlTemplate {
     }
 
     protected Optional<IMetaData> getMetadata(@NonNull final String key){
-        for(TomlTable curMetadata : tomlMetadata)
+        for(final Map<String,Object> curMetadata : tomlMetadata)
         {
-            if(curMetadata.contains(key))
+            if(curMetadata.containsKey(key))
                 return Optional.of(IMetaData.buildMetaData(curMetadata.get(key)));
         }
 
@@ -76,7 +81,7 @@ public class HtmlTemplate implements IHtmlTemplate {
     private String allMetadataToHtml(){
         final StringBuilder res = new StringBuilder();
 
-        for(TomlTable curMetadata:tomlMetadata)
+        for(final Map<String,Object> curMetadata:tomlMetadata)
             res.append( IMetaData.buildMetaData(curMetadata).toHtml());
 
         return res.toString();
