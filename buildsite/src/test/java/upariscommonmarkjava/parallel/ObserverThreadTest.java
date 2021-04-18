@@ -44,7 +44,9 @@ public class ObserverThreadTest {
             queue.add(x);
 
         final ArrayList<Integer> elem = new ArrayList<>();
-        new ObserverThread<>(5,queue, elem::add);
+        new ObserverThread<>(5,queue, (x) -> {
+            synchronized (elem) {elem.add(x);}
+        });
 
         Assertions.assertEquals(size, elem.size());
     }
