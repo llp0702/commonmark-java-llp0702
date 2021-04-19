@@ -9,13 +9,13 @@ import upariscommonmarkjava.buildsite.theme.ITheme;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
 public class DirectoryHtmlParallel extends DirectoryHtml{
 
-    private int nb_thread;
+    //nombre de thread utilisable
+    private int nbThread;
 
     public DirectoryHtmlParallel(@NonNull final Path inputContentBasePath, @NonNull final ITOMLFile tomlOptions,
                                  @NonNull final List<Path> mdFilesPaths, @NonNull final List<Path> staticFilesPaths,
@@ -24,6 +24,7 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
         super(inputContentBasePath,tomlOptions,mdFilesPaths, staticFilesPaths,asciiFilesPath, templatesPaths,theme);
     }
 
+    /** Construit la liste des fichiers qui peuvent être compilé en meme temps en utilisant leur hierarchie */
     private List<List<Path>> buildIndependantQueue(boolean rebuild) throws NeedsException {
         final HashMap<String, Needs<Path>> tableConstraints = new HashMap<>();
 
@@ -68,7 +69,8 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
     }
 
     @Override
-    public void save(@NonNull final Path targetBasePath,boolean rebuild) throws IOException  {
+    /** sauvegarde le projet de manière parallel */
+    public void save(@NonNull final Path targetBasePath,boolean rebuild) {
         setHier(targetBasePath);
         if(!rebuild && hashCode() == hier.hashCode()){
             return;
@@ -79,16 +81,16 @@ public class DirectoryHtmlParallel extends DirectoryHtml{
         try {
             final List<List<Path>> indQueue = buildIndependantQueue(rebuild);
             for(final List<Path> list : indQueue){
-                new ObserverThread<>(nb_thread, new LinkedList<>(list), path -> this.compileFile(path,targetBasePath));
+                new ObserverThread<>(nbThread, new LinkedList<>(list), path -> this.compileFile(path,targetBasePath));
             }
         }catch(NeedsException needsException){
 
         }
     }
 
-    public void setNbThread(final int nb_thread) {
+    public final void setNbThread(final int nb_thread) {
         if(nb_thread > 0)
-            this.nb_thread = nb_thread;
+            this.nbThread = nb_thread;
         else
             throw new Error("Nombre de thread invalide");
     }

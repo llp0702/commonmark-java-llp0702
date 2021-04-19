@@ -11,15 +11,16 @@ import java.util.Optional;
 public class DirectoryMdParallel implements IDirectoryMd {
     private final DirectoryMd directoryMd;
 
-    private final int nb_thread;
+    //nombre de thread utilisable
+    private final int nbThread;
 
     public DirectoryMdParallel(final Path folderPath) throws SiteFormatException{
         this(folderPath, Runtime.getRuntime().availableProcessors());
     }
 
-    public DirectoryMdParallel(final Path folderPath, int nb_thread) throws SiteFormatException{
+    public DirectoryMdParallel(final Path folderPath, int nbThread) throws SiteFormatException{
         this.directoryMd = DirectoryMd.open(folderPath);
-        this.nb_thread = nb_thread;
+        this.nbThread = nbThread;
     }
 
     @Override
@@ -48,9 +49,10 @@ public class DirectoryMdParallel implements IDirectoryMd {
     }
 
     @Override
+    /** génère un DirectoryHtml à partir du constructeur de DirectoryHtmlParallel */
     public IDirectoryHtml generateHtml() {
         final DirectoryHtmlParallel directoryHtmlParallel = (DirectoryHtmlParallel)directoryMd.generateHtml(DirectoryHtmlParallel::new);
-        directoryHtmlParallel.setNbThread(this.nb_thread);
+        directoryHtmlParallel.setNbThread(this.nbThread);
         return directoryHtmlParallel;
     }
 

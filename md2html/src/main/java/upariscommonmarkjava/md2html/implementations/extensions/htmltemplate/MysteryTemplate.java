@@ -7,6 +7,8 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
+
+/** Class de remplacement et template pour la fonctionnalité mystère */
 public class MysteryTemplate extends AdvancedHtmlTemplate{
     private static final String PATTERN_LIST_FILE = "list_files\\([ ]*\"(.*?)\"[ ]*,[ ]*(true|false)[ ]*\\)";
 
@@ -22,7 +24,10 @@ public class MysteryTemplate extends AdvancedHtmlTemplate{
         return super.apply();
     }
 
-    private String replaceListFiles(final Matcher matcher) {
+    /** Fonction de substitution du pattern list_files
+     * @return le text vidé des occurences de list_files
+     */
+    protected final String replaceListFiles(final Matcher matcher) {
         key_file_array++;
         final String name_list_file = "_list_files_" + key_file_array;
 
@@ -44,13 +49,10 @@ public class MysteryTemplate extends AdvancedHtmlTemplate{
         return name_list_file;
     }
 
-    /**
-     * Renvoie les chemins relatifs des fichiers contnenus dans le répertoire passé en argument
-     *
+    /** Renvoie les noms des fichiers contenus dans le répertoire passé en argument
      * @param directory repértoire cible
      * @param result la liste des chemins en String
      */
-
     private void list_files(final Path directory,final ArrayList<String> result) {
         final File[] currents = directory.toFile().listFiles();
         if(currents != null)
@@ -62,6 +64,11 @@ public class MysteryTemplate extends AdvancedHtmlTemplate{
                      .forEach(result::add);
     }
 
+    /** Renvoie la liste des fichiers contenus dans le répertoire de manière récursive
+     * @param initial_directory le dossier pour calculer le lien relatif
+     * @param directory le dossier qu'on est en train de parcourrir
+     * @param result la liste des fichiers
+     */
     private void list_files_rec(final Path initial_directory,final Path directory,final ArrayList<String> result) {
         final File current = directory.toFile();
 

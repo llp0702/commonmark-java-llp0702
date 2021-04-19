@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class IndependantQueue {
+public final class IndependantQueue {
     private IndependantQueue(){}
 
+    /** Vérifie que l'ensemble des contraintes sont bien déclaré et qu'aucune contraintes n'est bloquante
+     * @param values L'ensemble des containtes
+     * @throws NeedsException si la liste de contrainte n'est pas valide
+     */
     private static <TYPE> void valid(final List<Needs<TYPE>> values) throws NeedsException {
         final ArrayList<TYPE> keys = new ArrayList<>();
         values.stream().map(Needs::getValue).forEach(keys::add);
@@ -18,6 +22,7 @@ public class IndependantQueue {
 
     }
 
+    /** Fabrique une liste d'éléments indépendants */
     private static <TYPE> List<TYPE> getStep(final List<Needs<TYPE>> values) {
         final List<TYPE> step = new ArrayList<>();
         for(int i = 0; i < values.size(); i++) {
@@ -39,6 +44,7 @@ public class IndependantQueue {
         return step;
     }
 
+    /** fabrique l'ensemble des listes indépendantes */
     public static <TYPE> List<List<TYPE>> generate(final List<Needs<TYPE>> constraints) throws NeedsException {
         valid(constraints);
 

@@ -33,32 +33,31 @@ public class DirectoryMd implements IDirectoryMd{
 
     private final Logger logger = Logger.getLogger(getClass().getName());
 
-    public static Optional<File> findOptFileOrDirectory(final String name, final File[] files) {
+    protected static Optional<File> findOptFileOrDirectory(final String name, final File[] files) {
         return Arrays.stream(files).filter(x -> x.getName().equals(name)).findAny();
     }
 
-    public static File findFileOrDirectory(final String name, final File[] files, final String errorMessage) throws  SiteFormatException {
+    protected static File findFileOrDirectory(final String name, final File[] files, final String errorMessage) throws  SiteFormatException {
         return findOptFileOrDirectory(name,files).orElseThrow(() -> new SiteFormatException(errorMessage));
     }
 
-    public static File[] findFiles(final File folder,final String errorMessage) throws  SiteFormatException {
+    protected static File[] findFiles(final File folder,final String errorMessage) throws  SiteFormatException {
         final File[] files = folder.listFiles();
         if(files == null)
             throw new SiteFormatException(errorMessage);
         return files;
     }
 
-    public static void isDirectory(final File folder, final String errorMessage) throws  SiteFormatException {
+    protected static void isDirectory(final File folder, final String errorMessage) throws  SiteFormatException {
         if(!folder.isDirectory())
             throw new SiteFormatException(errorMessage);
     }
 
+    /** [fabrique] de directoryMd à partir d'un chemoin de fichier */
     public static DirectoryMd open(final Path folderPath) throws SiteFormatException {
-
         isDirectory(folderPath.toFile(), "The file is not a folder");
 
         final File[] files = findFiles(folderPath.toFile(), "No files found");
-
         final File toml = findFileOrDirectory("site.toml",files,"No Site.Toml found ! ");
         final File content = findFileOrDirectory("content",files,"No content folder ! ");
 
@@ -90,10 +89,12 @@ public class DirectoryMd implements IDirectoryMd{
         }
     }
 
+    /** initialise le fichier toml */
     private ITOMLFile initOption(final Path toml) throws IOException {
         return TomlFile.fromPath(toml);
     }
 
+    /** parcours récursivement l'ensemble du répertoire */
     protected void parcoursContent(final Path contentBasePath){
         if(contentBasePath == null) return;
         try(final Stream<Path> paths = Files.list(contentBasePath)){
@@ -109,7 +110,7 @@ public class DirectoryMd implements IDirectoryMd{
                 }
             });
         }catch (IOException e){
-            logger.warning("IOException during parcoursThemes");
+            logger.warning("IOException during parcours DirectoryMd");
         }
     }
 
@@ -122,12 +123,13 @@ public class DirectoryMd implements IDirectoryMd{
         parcoursContent(content);
     }
 
-
-    protected IDirectoryHtml generateHtml(BuilderDirectoryHtml builder) {
+    /** fonction utilisant un builder pour générer un DirectoryHtml*/
+    protected IDirectoryHtml generateHtml(final BuilderDirectoryHtml builder) {
         return builder.apply(this.contentBasePath,this.tomlOptions,this.mdFilesPaths,this.staticFilesPaths,
                 this.asciiFilesPaths,  Collections.emptyList(), Optional.empty());
     }
 
+    /** fonction construisant un directoryHtml avec le constructeur de DirectoryHtml */
     public IDirectoryHtml generateHtml() {
         return generateHtml(DirectoryHtml::new);
     }

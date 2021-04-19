@@ -8,7 +8,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+/** Interface fonctionnel de génération de directoryhtml */
 @FunctionalInterface
 interface BuilderDirectoryHtml{
-    DirectoryHtml apply(Path inputContentBasePath, ITOMLFile tomlOptions, List<Path> mdFilesPaths, List<Path> staticFilesPaths, List<Path> asciiFilesPaths, List<Path> templatesPaths, Optional<ITheme> theme);
+    DirectoryHtml apply(final Path inputContentBasePath, final ITOMLFile tomlOptions,final List<Path> mdFilesPaths,final List<Path> staticFilesPaths, final List<Path> asciiFilesPaths, final List<Path> templatesPaths, final Optional<ITheme> theme);
 }

@@ -36,7 +36,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
 
     private Optional<Hierarchie> actualHierarchie;
 
-    public ConverterMd2Html(final ITOMLFile globalMetadata, final List<Path> templateFiles,Hierarchie hier){
+    public ConverterMd2Html(final ITOMLFile globalMetadata, final List<Path> templateFiles, final Hierarchie hier){
         this.globalMetadata = Optional.of(globalMetadata);
         this.templateFiles = templateFiles;
         this.actualHierarchie = Optional.of(hier);
@@ -59,10 +59,12 @@ public class ConverterMd2Html implements IConverterMd2Html {
     }
 
     @Override
+    /** récupère l'ensemble du fichier common mark structuré par la librairie */
     public Node parse(@NonNull final ICMFile cmFile) throws IOException{
         return parser.parseReader(cmFile.getReader());
     }
 
+    /** traduit les métadata du fichier toml */
     private Node parseTomlMetadata(@NonNull final ICMFile cmFile) throws IOException {
         final Node resNode = parse(cmFile);
         final TomlVisitor tomlVisitor = new TomlVisitor();
@@ -73,6 +75,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
     }
 
     @Override
+    /** traduit le fichier common mark */
     public String parseAndConvert2Html(@NonNull final ICMFile cmFile) throws IOException {
         final Node resNode = parseTomlMetadata(cmFile);
 
@@ -88,6 +91,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
     }
 
     @Override
+    /** traduit le fichier common mark et le sauvegarde */
     public void parseAndConvert2HtmlAndSave(@NonNull final ICMFile cmFile, @NonNull final Path destination) throws IOException {
         final String resString = parseAndConvert2Html(cmFile);
 
@@ -99,10 +103,12 @@ public class ConverterMd2Html implements IConverterMd2Html {
         }
     }
 
+    /** renvoie la page avec les balises nécessaires à une page html */
     private String wrapHtmlBody(final String body) {
         return "<!DOCTYPE HTML><html lang=\"en\"><head><title>title</title></head><body>" + body + "</body></html>";
     }
 
+    /** Récupère la hierarchie actuel si elle existe */
     public Optional<Hierarchie> getActualHierarchie(@NonNull final ICMFile cmFile) throws IOException{
         parseTomlMetadata(cmFile);
         final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
@@ -111,6 +117,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return this.actualHierarchie;
     }
 
+    /** Mets à jour la hierarchie */
     private void refreshHierarchie(@NonNull final ICMFile cmFile, final Optional<Path> template){
         if(template.isEmpty())
             return;
@@ -124,6 +131,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         } catch (IOException ignored) {}
     }
 
+    /** Récupère le template spécifié par les métadatas  */
     private Optional<Path> searchTemplate(final List<TomlTable> metaDataLocal){
         Optional<Path> template = searchPathEqual(templateFiles,"default.html");
         for (TomlTable metaData : metaDataLocal) {
@@ -139,6 +147,7 @@ public class ConverterMd2Html implements IConverterMd2Html {
         return template;
     }
 
+    /** Applique un template si il est trouvé */
     private String applyTemplateIfPresent(@NonNull final ICMFile cmFile, final String htmlContent){
         final List<TomlTable> metaDataLocal = cmFile.getTomlMetadataLocal();
         final Optional<Path> template = searchTemplate(metaDataLocal);
@@ -167,5 +176,4 @@ public class ConverterMd2Html implements IConverterMd2Html {
     private static Optional<Path> searchPathEndsWith(final List<Path> templateFiles, final String pattern) {
         return templateFiles.stream().filter(x -> x.normalize().toString().endsWith(pattern)).findAny();
     }
-
 }

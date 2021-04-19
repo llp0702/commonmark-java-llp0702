@@ -48,8 +48,8 @@ public class BuildSiteMain {
         }
     }
 
-    public static void parallel(final Path inputDir, final Path outputDir, final boolean isRebuildAll, final int nb_thread) throws IOException, SiteFormatException {
-        new DirectoryMdParallel(inputDir, nb_thread).generateHtml().save(outputDir, isRebuildAll);
+    public static void parallel(final Path inputDir, final Path outputDir, final boolean isRebuildAll, final int nbThread) throws IOException, SiteFormatException {
+        new DirectoryMdParallel(inputDir, nbThread).generateHtml().save(outputDir, isRebuildAll);
     }
 
     public static void buildSite(final Path inputDir, final Path outputDir, final boolean isRebuildAll) throws IOException, SiteFormatException {
