@@ -1,4 +1,4 @@
-const BASE_PATH = "http://localhost:14555"
+const BASE_PATH = "http://localhost:12345"
 const API_GET_INPUT_FILES_PATHS_URL = BASE_PATH+ "/getInp";
 const API_GET_OUTPUT_FILES_PATHS_URL = BASE_PATH+ "/getOut";
 const API_GET_UPDATE_SITE = BASE_PATH + "/reloadsite";

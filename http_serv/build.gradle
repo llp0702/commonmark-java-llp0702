@@ -8,3 +8,18 @@ dependencies {
     implementation 'org.slf4j:slf4j-log4j12:1.7.12'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.2'
 }
+
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories.setFrom( files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['upariscommonmarkjava/http_serv/HttpMain.java',
+                              'upariscommonmarkjava/http_serv/implementations/dto/**',
+                              'upariscommonmarkjava/http_serv/implementations/server/ServerHandler.java',
+                              'upariscommonmarkjava/http_serv/implementations/server/ServerInitializer.java',
+                              'upariscommonmarkjava/http_serv/implementations/server/SsgServer.java',
+                              'upariscommonmarkjava/http_serv/implementations/server/UtilConstants.java'
+                              ])
+        }))
+    }
+}

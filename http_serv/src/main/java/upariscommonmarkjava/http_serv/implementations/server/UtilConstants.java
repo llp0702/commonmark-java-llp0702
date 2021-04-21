@@ -9,8 +9,6 @@ public final class UtilConstants {
 
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    public static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
-    public static final Pattern ALLOWED_FILE_NAME = Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
 
     public static final Path PATH_INTO_HOME_HTML = Paths.get("http_serv/src/main/resources/static/home.html");
     public static final Path PATH_INTO_HOME_JS = Paths.get("http_serv/src/main/resources/static/home.js");

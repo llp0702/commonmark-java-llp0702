@@ -29,7 +29,6 @@ public class SsgApi {
         return this.getFilesArbo(inputBasePath).stream().peek(i-> i.setInputFile(true))
                 .collect(Collectors.toList());
     }
-
     private List<FileDetailsDTO> getFilesArbo(Path from){
         final List<FileDetailsDTO> result = new ArrayList<>();
         try(Stream<Path> inputSubFilesStream = Files.list(from)){

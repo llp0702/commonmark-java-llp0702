@@ -9,11 +9,8 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import upariscommonmarkjava.buildsite.SiteFormatException;
 
-import javax.activation.MimetypesFileTypeMap;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +19,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static upariscommonmarkjava.http_serv.implementations.server.UtilConstants.*;
 
@@ -130,28 +126,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
     }
 
-    private Path sanitizeUri(String uri, Path relativeTo)throws IllegalArgumentException {
-        uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
-
-        if (!uri.startsWith("/")) {
-            throw new IllegalArgumentException("Invalid uri");
-        } else {
-            uri = uri.replaceFirst("/", "");
-            uri = uri.replace('/', File.separatorChar);
-            if(uri.contains(File.separator + '.') ||
-                    uri.contains('.' + File.separator) ||
-                    uri.startsWith(".") && !uri.endsWith(".") ||
-                    INSECURE_URI.matcher(uri).matches()){
-                throw new IllegalArgumentException("Invalid uri");
-            }else{
-                if(Paths.get(uri).startsWith(relativeTo)){
-                    return Paths.get(uri);
-                }
-                return  relativeTo.resolve(uri);
-            }
-        }
-    }
-
     private static void sendRegularFile(ChannelHandlerContext ctx, Path filePath) throws IOException {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -169,50 +143,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         ctx.write(response).addListener(ChannelFutureListener.CLOSE);
         ctx.flush();
     }
-    private static void sendListing(ChannelHandlerContext ctx, Path dir) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
-        StringBuilder buf = new StringBuilder();
-
-        buf.append("<!DOCTYPE html>\r\n");
-        buf.append("<html><head><title>");
-        buf.append("Listing of output: ");
-        buf.append(dir);
-        buf.append("</title></head><body>\r\n");
-        buf.append("<h3>Listing of: ");
-        buf.append(dir);
-        buf.append("</h3>\r\n");
-        buf.append("<ul>");
-        buf.append("<li><a href=\"").append("\">..</a></li>\r\n");
-
-        try(Stream<Path> subFilesPathsList = Files.list(dir)) {
-            subFilesPathsList.forEach(curSubFilePath ->{
-                if (Files.isReadable(curSubFilePath) &&
-                        ALLOWED_FILE_NAME.matcher(curSubFilePath.getFileName().toString()).matches()) {
-                    buf.append("<li><a href=\"")
-                            .append(curSubFilePath.getFileName())
-                            .append("\">")
-                            .append(curSubFilePath.getFileName())
-                            .append("</a>")
-                            .append("</li>\r\n");
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        buf.append("</ul></body></html>\r\n");
-        response.content().writeBytes(Unpooled.copiedBuffer(buf, CharsetUtil.UTF_8));
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-        ctx.flush();
-    }
-
-    private static void sendRedirect(ChannelHandlerContext ctx, String newUri) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FOUND);
-        response.headers().set("Location", newUri);
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-        ctx.flush();
-    }
 
     private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
@@ -221,12 +151,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         ctx.flush();
     }
 
-    private static void sendNotModified(ChannelHandlerContext ctx) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_MODIFIED);
-        setDateHeader(response);
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-        ctx.flush();
-    }
 
     private static void setDateHeader(FullHttpResponse response) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.US);
@@ -235,19 +159,4 @@ public class ServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         response.headers().set("Date", dateFormatter.format(time.getTime()));
     }
 
-    private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
-        SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT, Locale.US);
-        dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Calendar time = new GregorianCalendar();
-        response.headers().set("Date", dateFormatter.format(time.getTime()));
-        time.add(13, 60);
-        response.headers().set("Expires", dateFormatter.format(time.getTime()));
-        response.headers().set("Cache-Control", "private, max-age=60");
-        response.headers().set("Last-Modified", dateFormatter.format(new Date(fileToCache.lastModified())));
-    }
-
-    private static void setContentTypeHeader(HttpResponse response, File file) {
-        MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-        response.headers().set(CONTENT_TYPE, mimeTypesMap.getContentType(file.getPath()));
-    }
 }

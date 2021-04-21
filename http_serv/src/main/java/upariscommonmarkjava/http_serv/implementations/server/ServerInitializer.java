@@ -18,7 +18,4 @@ public class ServerInitializer extends ChannelInitializer<Channel> {
         pipeline.addLast(new HttpObjectAggregator(Integer.MAX_VALUE));
         pipeline.addLast(new ServerHandler(ssgApi));
     }
-
-
-
 }
