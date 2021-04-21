@@ -8,17 +8,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import jnr.ffi.types.id_t;
 import upariscommonmarkjava.md2html.implementations.incremental.Hierarchie;
 
 
@@ -54,6 +55,16 @@ public class HierarchieTest {
     public void createHierarchieFromListTest(){
         List<Path> p = createListPath();
         Hierarchie h = new Hierarchie(p);
+        assertEquals(p.size(),h.nombrePath());
+    }
+
+    @Test
+    public void createHierarchieFromNothing(){
+        List<Path> p = createListPath();
+        Hierarchie h = new Hierarchie();
+        for(Path path : p){
+            h.addNewPath(path.toString());
+        }
         assertEquals(p.size(),h.nombrePath());
     }
 
@@ -94,17 +105,6 @@ public class HierarchieTest {
         assertTrue(h.existPath("Monjour.md"));
         assertTrue(h.existPath("Bonjour.md"));
         assertTrue(h.existPath("Lonjour.md"));
-    }
-
-
-    @Test
-    public void clearPathTest(){
-        h.addDep("index.md", "Salut.md");
-        h.clearPath();
-        assertEquals(1, h.nombrePath());
-        assertFalse(h.existPath("site.md"));
-        assertFalse(h.existPath("CommonMark.md"));
-        assertFalse(h.existPath("exemple.md"));
     }
 
     @Test
@@ -164,6 +164,89 @@ public class HierarchieTest {
         List<String> cm2 = h.getDepCourant("CommonMark.md");
         assertEquals(5,cm2.size());
         assertEquals(4,ind.size());
+    }
+
+    @Test
+    public void hashCodeTest(){
+        h.setGlobalHash(-28922);
+        assertEquals(-28922, h.hashCode());
+        h.setGlobalHash(0);
+        assertEquals(0, h.hashCode());
+        h.setGlobalHash(55541358);
+        assertEquals(55541358, h.hashCode());
+    }
+
+    @Test
+    public void hashCodeCourantTest(){
+        h.setHashCourant("CommonMark.md", 884567);
+        assertEquals(884567, h.getHashCourant("CommonMark.md"));
+        h.setHashCourant("test.md", -845756);
+        assertEquals(-845756, h.getHashCourant("test.md"));
+        assertEquals(0, h.getHashCourant("non_existant.md"));
+    }
+
+    @Test
+    public void supprAllFromCollectionTest(){
+        h.addNewPath("dependances.md");
+        h.addDep("dependances.md", "moi.md");
+        h.addDep("index.md", "dependances.md");
+        h.addDep("CommonMark.md", "index.md");
+        List<String> d = h.getDepCourant("CommonMark.md");
+        List<Path> i = new ArrayList<>();
+        i.add(Paths.get("moi.md"));
+        i.add(Paths.get("index.md"));
+        h.supprAllFromCollection("CommonMark.md", i);
+        assertEquals(1,d.size());
+        assertEquals("dependances.md",d.get(0));
+    }
+
+    @Test
+    public void addFromCollectionTest(){
+        List<Path> i = new ArrayList<>();
+        i.add(Paths.get("moi.md"));
+        i.add(Paths.get("index.md"));
+        h.addFromCollection("CommonMark.md", i);
+        List<String> liste = h.getDepCourant("CommonMark.md");
+        assertEquals(2,liste.size());
+        assertTrue(liste.contains("moi.md"));
+        assertTrue(liste.contains("index.md"));
+    }
+
+    @Test
+    public void supprInstanceOfCourantTest(){
+        h.addNewPath("dependances.md");
+        h.addDep("dependances.md", "moi.md");
+        h.addDep("index.md", "dependances.md");
+        h.addDep("CommonMark.md", "index.md");
+        List<Path> i = new ArrayList<>();
+        i.add(Paths.get("dependances.md"));
+        i.add(Paths.get("index.md"));
+        h.supprInstanceOfCourant("moi.md", i);
+        List<String> depCommon = h.getDepCourant("CommonMark.md");
+        List<String> depDependances = h.getDepCourant("dependances.md");
+        List<String> depIndex = h.getDepCourant("index.md");
+        assertEquals(3,depCommon.size());
+        assertEquals(1,depIndex.size());
+        assertEquals(0,depDependances.size());
+    }
+
+    @Test
+    public void getNeedsTest(){
+        h.addNewPath("dependances.md");
+        h.addDep("dependances.md", "moi.md");
+        h.addDep("index.md", "dependances.md");
+        h.addDep("CommonMark.md", "index.md");
+        List<String> s = h.getNeeds("dependances.md");
+        assertEquals(2,s.size());
+        assertTrue(s.contains("index.md"));
+        assertTrue(s.contains("CommonMark.md"));
+    }
+
+
+    @Test
+    public void supprPath(){
+        h.supprPath("index.md");
+        assertEquals(3, h.nombrePath());
     }
 
 }
