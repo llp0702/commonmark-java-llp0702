@@ -31,6 +31,7 @@ public class Theme implements ITheme {
         valid = parseTheme();
     }
 
+    /** récupère les fichiers statiques et templates du thèmes si ils sont présents */
     private boolean parseTheme(){
         final Path templatesPathsBase = this.basePath.resolve("templates");
         final Path staticPathsBase = this.basePath.resolve("static");
@@ -50,7 +51,8 @@ public class Theme implements ITheme {
         return basePath.getFileName().toString();
     }
 
-    private void parcoursArbo(@NonNull Path basePath, @NonNull List<Path> targetList){
+    /** Parcours l'arborescence des fichiers et prenant en compte les thèmes */
+    private void parcoursArbo(@NonNull final Path basePath, @NonNull final List<Path> targetList){
         try(final Stream<Path> pathsStream = Files.list(basePath)){
             pathsStream.forEach(curPath->{
                 if(Files.isDirectory(curPath)){
@@ -62,7 +64,5 @@ public class Theme implements ITheme {
         }catch (Exception e){
             logger.warning("Exception in parcoursArbo "+e.getMessage());
         }
-
     }
-
 }

@@ -1,9 +1,8 @@
 package upariscommonmarkjava.buildsite;
 
 import org.apache.commons.cli.*;
-import upariscommonmarkjava.buildsite.directoryhtml.IDirectoryHtml;
 import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
-import upariscommonmarkjava.buildsite.directorymd.IDirectoryMd;
+import upariscommonmarkjava.buildsite.directorymd.DirectoryMdParallel;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,24 +14,29 @@ public class BuildSiteMain {
         main(args,  buildsiteMainOptions());
     }
     public static void main(String[] args, Options options){
-        Logger logger = Logger.getAnonymousLogger();
-        CommandLineParser parser = new DefaultParser();
-        String currentDirectory = System.getProperty("user.dir");
+        final Logger logger = Logger.getAnonymousLogger();
+        final CommandLineParser parser = new DefaultParser();
+        final String currentDirectory = System.getProperty("user.dir");
+
         try {
-            CommandLine line = parser.parse( options, args, false);
-            if( line.hasOption("h")){
+            final CommandLine line = parser.parse( options, args, false);
+            if(line.hasOption("h")){
                 help();
             }else{
-                buildSite(
-                        Paths.get(line.hasOption("i") ?
-                                line.getOptionValue("i"):
-                                currentDirectory),
-                        line.hasOption("o")?
-                                Paths.get(line.getOptionValue("o")):
-                                Paths.get(currentDirectory, "_output"),
-                        line.hasOption("r")
-                        );
+                final Path optI = Paths.get(line.hasOption("i") ? line.getOptionValue("i") : currentDirectory);
+                final Path optO = line.hasOption("o") ? Paths.get(line.getOptionValue("o")) : Paths.get(
+                        currentDirectory, "_output");
+                final boolean optR = line.hasOption("r");
 
+                if(line.hasOption("j"))
+                {
+                    final int optJ = Integer.parseInt(line.getOptionValue("j"));
+
+                    parallel(optI,optO,optR,optJ);
+                }
+                else {
+                    buildSite(optI,optO,optR);
+                }
             }
         }
         catch(ParseException | SiteFormatException | IOException exp ) {
@@ -44,6 +48,10 @@ public class BuildSiteMain {
         }
     }
 
+    public static void parallel(final Path inputDir, final Path outputDir, final boolean isRebuildAll, final int nbThread) throws IOException, SiteFormatException {
+        new DirectoryMdParallel(inputDir, nbThread).generateHtml().save(outputDir, isRebuildAll);
+    }
+
     public static void buildSite(final Path inputDir, final Path outputDir, final boolean isRebuildAll) throws IOException, SiteFormatException {
         DirectoryMd.open(inputDir)
                 .generateHtml()
@@ -51,12 +59,12 @@ public class BuildSiteMain {
     }
 
     public static void help() {
-        HelpFormatter formatter = new HelpFormatter();
+        final HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp( "ssg build [Options]", buildsiteMainOptions());
     }
 
     public static Options buildsiteMainOptions(){
-        Options options = new Options();
+        final Options options = new Options();
         options.addOption(Option.builder("h").longOpt("help").desc("Affiche ce message" ).build() );
         options.addOption( Option.builder("o").longOpt("output-dir").numberOfArgs(1).argName("DIR")
                 .desc("Les fichiers sont produits dans le répertoire _output/ par défaut, ou dans le répertoire DIR ")
@@ -68,6 +76,9 @@ public class BuildSiteMain {
                 .build());
         options.addOption(Option.builder("r").longOpt("rebuild-all").numberOfArgs(0)
                 .desc("Recompile le projet dans sa globalité")
+                .build());
+        options.addOption(Option.builder("j").longOpt("jobs").numberOfArgs(1)
+                .desc("Generation multi-threadée")
                 .build());
         return options;
     }

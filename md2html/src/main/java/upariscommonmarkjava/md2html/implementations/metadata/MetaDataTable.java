@@ -8,9 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 public class MetaDataTable implements IMetaData {
-    private final TomlTable tomlTable;
-    public MetaDataTable(TomlTable tomlTable) {
-        this.tomlTable = tomlTable;
+    private final Map<String,Object> table;
+
+    public MetaDataTable(final TomlTable tomlTable) {
+        table = tomlTable.toMap();
+    }
+
+    public MetaDataTable(final Map<String,Object> table) {
+        this.table = table;
     }
 
     @Override
@@ -19,7 +24,7 @@ public class MetaDataTable implements IMetaData {
 
         result.append("<ul>");
 
-        for(Map.Entry<String, Object> entry : tomlTable.toMap().entrySet()){
+        for(Map.Entry<String, Object> entry : table.entrySet()){
             final IMetaData meta = IMetaData.buildMetaData(entry.getValue());
             result.append("<li>").append(entry.getKey()).append(" : ").append(meta.toHtml()).append("</li>");
         }
@@ -30,6 +35,6 @@ public class MetaDataTable implements IMetaData {
 
     @Override
     public List<Object> toList() {
-        return new ArrayList<>(this.tomlTable.toMap().values());
+        return new ArrayList<>( this.table.values());
     }
 }

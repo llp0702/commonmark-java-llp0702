@@ -13,7 +13,7 @@ import java.util.List;
 
 class IndependantQueueTest {
 
-    private static <Type> List<Needs<Type>> arrayListOf(Needs<Type>... elements){
+    private static <Type> List<Needs<Type>> arrayListOf(final Needs<Type>... elements){
         final List<Needs<Type>> list = new ArrayList<>();
         Collections.addAll(list, elements);
         return list;
@@ -69,6 +69,25 @@ class IndependantQueueTest {
                         new String[]{"D"},
                         new String[]{"C"},
                         new String[]{"B"},
+                        new String[]{"A"}
+                });
+    }
+
+    @Test
+    void testIndependantQueue3()
+    {
+        Needs<String> needs1 = new Needs<String>("A");
+        needs1.addNeededValue("B");
+        needs1.addNeededValue("C");
+        Needs<String> needs2 = new Needs<String>("C");
+        needs2.addNeededValue("D");
+        Needs<String> needs3 = new Needs<String>("B");
+        Needs<String> needs4 = new Needs<String>("D");
+
+        testPattern(arrayListOf(needs1,needs2,needs3,needs4),
+                new String[][]{
+                        new String[]{"B","D"},
+                        new String[]{"C"},
                         new String[]{"A"}
                 });
     }

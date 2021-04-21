@@ -32,16 +32,16 @@ class HtmlTemplateTest {
         }
     }
 
-    private String getResult(final String testName)
+    protected String getResult(final String testName)
     {
-        final ArrayList<Path> lp = new ArrayList();
+        final ArrayList<Path> lp = new ArrayList<>();
         lp.add(Paths.get(directory, testName + "/default.html"));
         return result(lp);
     }
 
     private String getResultWith(final String testName,final String templateTest)
     {
-        final ArrayList<Path> lp = new ArrayList();
+        final ArrayList<Path> lp = new ArrayList<>();
         lp.add(Paths.get(directory, testName + "/default.html"));
         lp.add(Paths.get(directory, testName + "/" + templateTest + ".html"));
         return result(lp);

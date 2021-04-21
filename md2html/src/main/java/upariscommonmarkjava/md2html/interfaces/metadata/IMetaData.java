@@ -7,6 +7,7 @@ import upariscommonmarkjava.md2html.implementations.metadata.MetaDataTable;
 import upariscommonmarkjava.md2html.implementations.metadata.MetaDataValue;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IMetaData {
     String toHtml();
@@ -15,7 +16,8 @@ public interface IMetaData {
     static IMetaData buildMetaData(final Object obj){
         if(obj instanceof TomlTable)
             return new MetaDataTable((TomlTable)obj);
-
+        else if (obj instanceof Map)
+            return new MetaDataTable((Map<String, Object>) obj);
         if(obj instanceof TomlArray)
             return new MetaDataArray((TomlArray)obj);
 

@@ -36,8 +36,10 @@ public class DirectoryHtml implements IDirectoryHtml {
     public static final Logger logger = Logger.getLogger("Directory html logger");
 
     @Getter
-    private final List<Path> inputFilesMdPaths;
+    protected final List<Path> inputFilesMdPaths;
 
+    @Getter
+    protected List<Path> asciiFilesPaths;
 
     protected ITOMLFile tomlOptions;
     protected List<Path> staticFilesPaths;
@@ -45,14 +47,16 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected List<Path> directory;
     protected Hierarchie hier;
     protected final Optional<ITheme> optTheme;
-    private final Path inputContentBasePath;
+    protected final Path inputContentBasePath;
 
     public DirectoryHtml(@NonNull final Path inputContentBasePath, @NonNull final ITOMLFile tomlOptions,
                             @NonNull final List<Path> mdFilesPaths, @NonNull final List<Path> staticFilesPaths,
-                            @NonNull final List<Path> templatesPaths, @NonNull final Optional<ITheme> theme) {
+                            @NonNull final List<Path> asciiFilesPath, @NonNull final List<Path> templatesPaths,
+                            @NonNull final Optional<ITheme> theme) {
         this.inputContentBasePath = inputContentBasePath;
         this.tomlOptions = tomlOptions;
         this.inputFilesMdPaths = mdFilesPaths;
+        this.asciiFilesPaths = asciiFilesPath;
         this.staticFilesPaths = staticFilesPaths;
         this.templatesPaths = templatesPaths;
         this.optTheme = theme;
@@ -70,28 +74,56 @@ public class DirectoryHtml implements IDirectoryHtml {
         directory.addAll(mdFilesPaths);
         directory.addAll(templatesPaths);
         directory.addAll(staticFilesPaths);
+        directory.addAll(asciiFilesPath);
         try {
             directory.add(Paths.get(tomlOptions.getStringPath()));
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
+    }
+    @Override
+    public final int hashCode(){
+        int res = 0;
+        for(Path e : this.directory){
+            res += getHash(e);
+        }
+        return Integer.valueOf(res).hashCode();
     }
 
-    private  void setHier(@NonNull final Path targetBasePath) {
+    /** calcule le hash du fichier file et le sauvegarde dans la hierarchie */
+    protected final void refreshHash(@NonNull final Path file){
+        final int hash = getHash(file);
+        hier.setHashCourant(file.toString(), hash);
+    }
+
+    /** calcule le hash du fichier input */
+    protected final int getHash(final Path input){
+        String content = "";
         try{
+            content = Files.readString(input);
+        }catch(IOException ignored){  }
+        return content.hashCode();
+    }
+
+    /** Récupère la hierarchie si existante sinon l'initialise
+     * @param targetBasePath répertoire ou se trouve la hierarchie
+     */
+    protected final void setHier(@NonNull final Path targetBasePath) {
+        try{
+            final File file = targetBasePath.toFile();
             Optional<File> hierOpt = Optional.empty();
-            File file = targetBasePath.toFile();
+
             if(file.exists()){
-                hierOpt = Arrays.stream(targetBasePath.toFile().listFiles()).filter(x->x.getName().equals("hierarchie.ser"))
-                .findAny();
+                hierOpt = Arrays.stream(targetBasePath.toFile().listFiles())
+                        .filter(x->x.getName().equals("hierarchie.ser"))
+                        .findAny();
             }
+
             if(hierOpt.isPresent()){
-                FileInputStream fichier = new FileInputStream(hierOpt.get());
-                ObjectInputStream ois = new ObjectInputStream(fichier);
+                final FileInputStream fichier = new FileInputStream(hierOpt.get());
+                final ObjectInputStream ois = new ObjectInputStream(fichier);
                 hier = (Hierarchie) ois.readObject();
             }else{
                 hier = new Hierarchie(directory);
-                try{
-                    hier.addFromCollection(tomlOptions.getStringPath(), inputFilesMdPaths);
-                }catch(IOException e){}
+                hier.addFromCollection(tomlOptions.getStringPath(), inputFilesMdPaths);
             }
         }catch(IOException  e){
             logger.log(Level.WARNING,"IOException Hierarchie");
@@ -100,34 +132,8 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    private void update(@NonNull final Path targetBasePath) throws IOException {
-        if(hashCode() == hier.hashCode()){
-            return;
-        }
-        for(Path p :  directory){
-            if(hier.getHashCourant(p.toString()) != getHash(p)){
-                compileFile(p,targetBasePath);
-                for(String d : hier.getDepCourant(p.toString())){
-                    Path dep = Path.of(d);
-                    compileFile(dep,targetBasePath);
-                    hier.setHashCourant(d.toString(),getHash(dep));
-                }
-                hier.setHashCourant(p.toString(),getHash(p));
-            }
-        }
-        hier.setGlobalHash(hashCode());
-        saveHier(targetBasePath);
-    }
-
-    private void compileFile(@NonNull final Path p,@NonNull final Path targetBasePath) throws IOException {
-        if(staticFilesPaths.contains(p)){
-            copyStaticFiles(targetBasePath, inputContentBasePath, true, p);
-        }else if(inputFilesMdPaths.contains(p)){
-            convertMd2HtmlAndCopyHrefs(targetBasePath, p);
-        }
-    }
-
-    private void saveHier(@NonNull final Path targetBasePath){
+    /** Sauvegarde la hierarchie dans le répertoire targetBasePath */
+    protected final void saveHier(@NonNull final Path targetBasePath){
         try {
             FileOutputStream out = new FileOutputStream(targetBasePath.resolve("hierarchie.ser").toString());
             ObjectOutputStream oos = new ObjectOutputStream(out);
@@ -138,26 +144,93 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-    @Override
-    public void save(@NonNull final Path targetBasePath,boolean all) throws IOException  {
-        setHier(targetBasePath);
-        if(all){
-            save(targetBasePath);
-        }else{
-            update(targetBasePath);
-        }
+    /** Met à jour le hash et sauvegarde la hierarchie */
+    protected final void saveGlobalHierarchie(@NonNull final Path targetBasePath){
+        hier.setGlobalHash(hashCode());
+        saveHier(targetBasePath);
     }
 
+    /** Récupère la hierarchie après l'avoir construite et mise à jour (sans sauvegarder et construire le fichier md) */
+    protected final Optional<Hierarchie> convertMd2HtmlGethierarchy(Path inputMdFile){
+        try {
+            final ConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions, templatesPaths, hier);
+            final ICMFile cmFile = CMFile.fromPath(inputMdFile);
+            return converterMd2Html.getActualHierarchie(cmFile);
+        }
+        catch(IOException ignore){}
+        return Optional.empty();
+    }
 
-    private void save(@NonNull final Path targetBasePath) throws IOException {
+    /** Copy le fichier statique path d'un thème vers target */
+    private void compileFileTheme(final Path target, final ITheme theme, final Path path) throws IOException{
+        copyStaticFile(target, theme.getBasePath().resolve("static"), false, path);
+    }
 
+    /** Compile le fichier path en fonction de son type */
+    protected void compileFile(@NonNull final Path path,@NonNull final Path targetBasePath){
+        try {
+            if (staticFilesPaths.contains(path)) {
+                copyStaticFile(targetBasePath, inputContentBasePath, true, path);
+            } else if(optTheme.isPresent() && optTheme.get().isValid() && optTheme.get().getStaticPaths().contains(path)) {
+                compileFileTheme(targetBasePath, optTheme.get(), path);
+            }
+            else if (inputFilesMdPaths.contains(path)) {
+                convertMd2HtmlAndCopyHrefs(targetBasePath, path);
+            }else if(asciiFilesPaths.contains(path)) {
+                convertAscii2HtmlAndCopyHrefs(targetBasePath);
+            }
+        } catch (IOException ignore) { }
+    }
+
+    /** Compile le site si des changement sont détectés */
+    protected void update(@NonNull final Path targetBasePath) {
+        if(hashCode() == hier.hashCode())
+            return;
+
+        for(final Path path :  directory){
+            if(hier.getHashCourant(path.toString()) != getHash(path)){
+                compileFile(path,targetBasePath);
+                final List<String> list =  hier.getDepCourant(path.toString());
+
+                for(int i = 0; i < list.size(); i++){
+                    final String dependance = list.get(i);
+                    final Path dep = Path.of(dependance);
+                    compileFile(dep,targetBasePath);
+                    hier.setHashCourant(dependance,getHash(dep));
+                }
+                hier.setHashCourant(path.toString(),getHash(path));
+            }
+        }
+        saveGlobalHierarchie(targetBasePath);
+    }
+
+    @Override
+    /** sauvegarde le projet en prenant en compte rebuildAll*/
+    public void save(@NonNull final Path targetBasePath,boolean rebuildAll) throws IOException  {
+        setHier(targetBasePath);
+
+        if(rebuildAll)
+            save(targetBasePath);
+        else
+            update(targetBasePath);
+    }
+
+    /** créé un directory et ses parents en cas d'absence */
+    protected final void createFolder(@NonNull final Path targetBasePath){
         final File tmp = new File(targetBasePath.toString());
         if(!tmp.mkdirs()){
             logger.log(Level.INFO,"No dir was created");
         }
+    }
+
+    /** recompile tous les fichiers du site et les sauvegardes */
+    protected void save(@NonNull final Path targetBasePath) throws IOException {
+        convertAscii2HtmlAndCopyHrefs(targetBasePath);
+
+        createFolder(targetBasePath);
 
         for(final Path staticFile : this.staticFilesPaths){
-            copyStaticFiles(targetBasePath, inputContentBasePath, true, staticFile);
+            copyStaticFile(targetBasePath, inputContentBasePath, true, staticFile);
         }
         for(final Path inputMdFile: inputFilesMdPaths){
             //Convert Md to Html then Copy hrefs
@@ -166,31 +239,33 @@ public class DirectoryHtml implements IDirectoryHtml {
         applyToValid(optTheme, theme -> {
             try {
                 for(final Path staticFile: theme.getStaticPaths()){
-                    copyStaticFiles(targetBasePath ,theme.getBasePath().resolve("static"), false, staticFile);
+                    compileFileTheme(targetBasePath,theme, staticFile);
                 }
             } catch (IOException e) {
                 logger.warning("Exception when trying to copy static files");
                 e.printStackTrace();
             }
         });
-        hier.setGlobalHash(hashCode());
-        saveHier(targetBasePath);
+
+        saveGlobalHierarchie(targetBasePath);
     }
 
-    private void applyToValid(final Optional<ITheme> optTheme, final Consumer<ITheme> fun) {
+    /** applique une fonction si le theme est présent et valide */
+    protected final void applyToValid(final Optional<ITheme> optTheme, final Consumer<ITheme> fun) {
         optTheme.ifPresent(theme -> {
             if (theme.isValid())
                 fun.accept(theme);
         });
     }
 
-
-    private void convertMd2HtmlAndCopyHrefs(@NonNull Path targetBasePath, Path inputMdFile) throws IOException {
-            Path outputPath = callMd2Html(targetBasePath, inputMdFile);
+    /** sauvegarde un fichier markdown en html et copier ses liens */
+    protected void convertMd2HtmlAndCopyHrefs(@NonNull final Path targetBasePath,final Path inputMdFile) throws IOException {
+            final Path outputPath = callMd2Html(targetBasePath, inputMdFile);
             //Save hrefs if not present
             copyHrefsIfAbsent(targetBasePath, outputPath);
     }
 
+    /** appel la traduction grace à MD2HTML */
     private Path callMd2Html(@NonNull final Path targetBasePath, @NonNull final Path inputMdFile) throws IOException {
         final Path outputPath = extension2Html(targetBasePath.resolve(inputContentBasePath.relativize(inputMdFile)));
         Files.createDirectories(outputPath.getParent());
@@ -198,12 +273,29 @@ public class DirectoryHtml implements IDirectoryHtml {
         final ICMFile cmFile = CMFile.fromPath(inputMdFile);
         final IConverterMd2Html converterMd2Html = new ConverterMd2Html(this.tomlOptions,templatesPaths,hier);
 
-
         converterMd2Html.parseAndConvert2HtmlAndSave(cmFile, outputPath);
         return outputPath;
     }
 
-    public static boolean isUrl(final String url) {
+    /** sauvegarde les fichiers ascii en html et copier leurs liens */
+    private void convertAscii2HtmlAndCopyHrefs(@NonNull Path targetBasePath) throws IOException {
+        for(Path inputAsciiFile: asciiFilesPaths) {
+            final Path outputPath = callAscii2Html(targetBasePath, inputAsciiFile);
+            copyHrefsIfAbsent(targetBasePath, outputPath);
+        }
+    }
+
+    /** appel la traduction grace à Ascii2ToHtml */
+    private Path callAscii2Html(@NonNull Path targetBasePath, @NonNull Path inputAsciiFile) throws IOException {
+        final Path outputPath = extension2Html(targetBasePath.resolve(inputContentBasePath.relativize(inputAsciiFile)));
+        Files.createDirectories(outputPath.getParent());
+        final Ascii2HtmlMain converter = new Ascii2HtmlMain();
+        converter.convert(inputAsciiFile.toFile(), targetBasePath);
+        return outputPath;
+    }
+
+    /** vérifie que un String est un url valide */
+    private static boolean isUrl(final String url) {
         try {
             new URL(url).toURI();
         }
@@ -213,6 +305,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         return true;
     }
 
+    /** Récupère tous les Hrefs du fichier html et les copies dans le répertoire si ils sont absents */
     private void copyHrefsIfAbsent(@NonNull final Path targetBasePath, @NonNull final Path html) throws IOException {
         final List<String> hrefs = getHrefs(html);
         for(String href : hrefs) {
@@ -233,10 +326,9 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
-
-    private void copyStaticFiles(@NonNull Path targetBasePath, @NonNull Path fromBasePath, boolean replaceIfExisting,@NonNull Path staticPath) throws IOException {
-            int hash = getHash(staticPath);
-            Path output = targetBasePath.resolve(fromBasePath.relativize(staticPath));
+    /** copie le fichier statique */
+    protected final void copyStaticFile(@NonNull final Path targetBasePath, @NonNull final Path fromBasePath, boolean replaceIfExisting, @NonNull final Path staticPath) throws IOException {
+            final Path output = targetBasePath.resolve(fromBasePath.relativize(staticPath));
             Files.createDirectories(output.getParent());
             if(replaceIfExisting){
                 Files.copy(staticPath, output,StandardCopyOption.REPLACE_EXISTING);
@@ -244,28 +336,10 @@ public class DirectoryHtml implements IDirectoryHtml {
                 Files.copy(staticPath, output);
             }
             //set the new static file hash in hierarchie
-            hier.setHashCourant(staticPath.toString(), hash);
+            refreshHash(staticPath);
     }
 
-    @Override
-    public int hashCode(){
-        int res = 0;
-        for(Path e : this.directory){
-            res += getHash(e);
-        }
-        return Integer.valueOf(res).hashCode();
-    }
-
-    private int getHash(Path input){
-        String s = "";
-        try{
-            s = Files.readString(input);
-        }catch(IOException e){
-
-        }
-        return s.hashCode();
-    }
-
+    /** récupère les hrefs du fichier html */
     private List<String> getHrefs(@NonNull final Path htmlPath){
         if(!Files.exists(htmlPath) || !Files.isRegularFile(htmlPath))
             return Collections.emptyList();
@@ -274,9 +348,9 @@ public class DirectoryHtml implements IDirectoryHtml {
             final String htmlContent = Files.readString(htmlPath);
             final List<String> result = new ArrayList<>();
             final Matcher matcher = Pattern.compile("href[ ]*=[ ]*['\"](.*?)['\"]").matcher(htmlContent);
-            while (matcher.find()){
+            while (matcher.find())
                 result.add(matcher.group(1));
-            }
+
             return result;
 
         } catch (IOException e) {
@@ -284,6 +358,7 @@ public class DirectoryHtml implements IDirectoryHtml {
         }
     }
 
+    /** change l'extension d'un nom de fichier */
     private Path extension2Html(@NonNull final Path pathMd){
         final String name = pathMd.getFileName().toString();
         return pathMd.resolveSibling(name.substring(0, name.lastIndexOf('.')) + ".html");

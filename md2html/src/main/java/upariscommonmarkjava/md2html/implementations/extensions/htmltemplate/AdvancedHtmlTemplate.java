@@ -6,19 +6,24 @@ import upariscommonmarkjava.md2html.interfaces.ITOMLFile;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/** Class de remplacement et template pour la fonctionnalité template++ */
 public class AdvancedHtmlTemplate extends HtmlTemplate {
-    private static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
-    private static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
-    private static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
+    protected static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
+    protected static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
+    protected static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
 
-    public AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<TomlTable> tomlMetadata, List<Path> templates, String content) {
+    public AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<Map<String,Object>> tomlMetadata, List<Path> templates, String content) {
         super(md2HtmlContent, metadataGlobal, tomlMetadata, templates, content);
     }
 
+    /**
+     * Applique le remplacement pour les templates For et If
+     * Applique aussi les pattern basique
+     */
     @Override
     public String apply() {
         this.replace(PATTERN_FOR,this::replaceFor);
@@ -26,7 +31,8 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
         return super.apply();
     }
 
-    private String replaceFor(final Matcher matcher) {
+    /** Fonction remplacant le pattern For */
+    protected final String replaceFor(final Matcher matcher) {
         final String element = matcher.group(1).trim();
         final String iterable = matcher.group(2).trim();
         final String innerContent = matcher.group(3).trim();
@@ -45,13 +51,22 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
         return sb.toString();
     }
 
-    private String matchForTomlTable(final String element, final String innerContent, final TomlTable table) {
-        return new AdvancedHtmlTemplate(md2HtmlContent,metadataGlobal,List.of(table),this.templates,
+    /** remplacement pour le cas spécifique des TomTable
+     * @param element le nom de la variable du for
+     * @param innerContent le contenu du for
+     * @param table la TomlTable
+     * @return le text auquel on a remplacé le for
+     */
+    protected final String matchForTomlTable(final String element, final String innerContent, final TomlTable table) {
+        return new AdvancedHtmlTemplate(fileContent,metadataGlobal,buildMetaDataLocal(List.of(table)),this.templates,
                 matchAndReplace("\\{\\{[ ]*" + element + "(\\.[^ ]+?)[ ]*\\}\\}", innerContent,
                         m -> "{{ metadata" + m.group(1).trim() + " }}")).apply();
     }
 
-    private boolean evalBoolean(final String variable) {
+    /** Evalue la métadata en un boolean
+     * @param variable le nom de la métadata
+     */
+    protected final boolean evalBoolean(final String variable) {
         final Optional<IMetaData> metaDataOptional = getMetadata(variable);
         if(metaDataOptional.isEmpty()) {
             logger.warning("The value is not a boolean");
@@ -65,7 +80,8 @@ public class AdvancedHtmlTemplate extends HtmlTemplate {
         return content.equals("true");
     }
 
-    private String replaceIfElse(final Matcher matcher) {
+    /** Fonction remplacant le pattern If else */
+    protected final String replaceIfElse(final Matcher matcher) {
         if(evalBoolean(matcher.group(1).trim()))
             return matcher.group(2).trim();
 

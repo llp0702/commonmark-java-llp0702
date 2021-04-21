@@ -6,3 +6,8 @@
 build/**
 **/build/**
 bin/**
+.classpath
+.project
+.settings
+.DS_Store
+*/*/*/*/*/*/_output/
