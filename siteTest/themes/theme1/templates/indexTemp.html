@@ -1,0 +1,7 @@
+{{ include "default.html" }}
+<ul>
+    {% for file in list_files("/home/arnaud/blog",false) %}
+        <a href="../blog/{{ file }}">{{ file }}<br></a>
+    {% endfor %}
+    Fin du for
+</ul>

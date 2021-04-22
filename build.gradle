@@ -64,12 +64,19 @@ allprojects {
         useJUnitPlatform()
         //This avoids StackOverflowException during Jacoco report
         jacoco {
-            excludes = ['com.thaiopensource.relaxng.impl.*']
+            excludes = ['com.thaiopensource.relaxng.impl.*',
+                        'upariscommonmarkjava.http_serv/HttpMain.java',
+                        'upariscommonmarkjava.http_serv.implementations.dto.**',
+                        'upariscommonmarkjava.http_serv.implementations.server.ServerHandler',
+                        'upariscommonmarkjava.http_serv.implementations.server.ServerInitializer',
+                        'upariscommonmarkjava.http_serv.implementations.server.SsgServer',
+                        'upariscommonmarkjava.http_serv.implementations.server.UtilConstants']
         }
         finalizedBy jacocoTestReport
     }
 
     task codeCoverageReport(type: JacocoReport) {
+
         executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 
         subprojects.each {

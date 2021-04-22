@@ -179,7 +179,7 @@ public class DirectoryHtml implements IDirectoryHtml {
 
     /** Copy le fichier statique path d'un thème vers target */
     private void compileFileTheme(final Path target, final ITheme theme, final Path path) throws IOException{
-        copyStaticFile(target, theme.getBasePath().resolve("static"), false, path);
+        copyStaticFile(target, theme.getBasePath().resolve("static"), true, path);
     }
 
     /** Compile le fichier path en fonction de son type */

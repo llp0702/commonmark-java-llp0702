@@ -1,0 +1,11 @@
+{{ include "default.html" }}
+Theme 1
+<ul>
+    {% for i in metadata.array %}
+        <li>{% if metadata.coucou %}
+            <h{{ i }}> {{metadata.title}}</h{{ i }}>
+        {% else %}
+            <h2> {{metadata.title}} </h2>
+        {% endif %}</li>
+    {% endfor %}
+</ul>

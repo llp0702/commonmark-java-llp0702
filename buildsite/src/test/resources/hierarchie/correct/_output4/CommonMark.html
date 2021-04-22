@@ -27,7 +27,17 @@
 </ul>
 <p>The CommonMark spec can be found <a href="http://spec.commonmark.org">online</a>.</p>
 </div>
-    This is my wonderful website. I hope you like The SSG Team<br>This is my wonderful website. I hope you like A Minimal Site<br>
-    TEST1
+    {% for i in general %}
+    This is my wonderful website. I hope you like i<br>
+    {% endfor %}
+    {% if test %}
+      TEST
+    {% else if test1 %}
+      TEST1
+    {% else if test2 %}
+      TEST2
+    {% else %}
+      NO TEST
+    {% endif %}
   </body>
 </html>
