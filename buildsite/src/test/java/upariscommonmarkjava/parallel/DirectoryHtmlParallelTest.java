@@ -23,7 +23,7 @@ public class DirectoryHtmlParallelTest {
     {
         try
         {
-            correct_site = new DirectoryMdParallel(Paths.get("src/test/resources/minimal"));
+            correct_site = new DirectoryMdParallel(Paths.get("src/test/resources/mini-theme"));
         }
         catch(SiteFormatException e)
         {
@@ -39,8 +39,8 @@ public class DirectoryHtmlParallelTest {
 
     @Test
     void testSaveAllParallel() {
-        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/hierarchie/correct/_output"),true));
-        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/hierarchie/correct/_output"),false));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/parallel/correct/_output"),true));
+        assertDoesNotThrow(() ->  correct_html.save(Paths.get("src/test/resources/parallel/correct/_output"),false));
     }
 
     @Test

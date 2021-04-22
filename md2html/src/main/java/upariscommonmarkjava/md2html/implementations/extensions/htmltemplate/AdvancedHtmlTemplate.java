@@ -12,9 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /** Class de remplacement et template pour la fonctionnalité template++ */
 public class AdvancedHtmlTemplate extends HtmlTemplate {
-    protected static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
-    protected static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+.*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
-    protected static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+(.*?)[ ]*?%\\}([^\\{]*)";
+    protected static final String PATTERN_FOR = "\\{%[ ]*for[ ]+(.*?)[ ]+in[ ]+metadata\\.(.*?)[ ]*%\\}((\\r|\\n|.)*?)\\{%[ ]*endfor[ ]*%\\}";
+    protected static final String PATTERN_IF_ELSE = "\\{%[ ]*?if[ ]+metadata\\.(.*?)[ ]*?%\\}([^$]*?)(\\{%[ ]*else if[ ]+metadata\\..*?[ ]*?%\\}[^$]*?)?(\\{%[ ]*else[ ]*%\\}((\\r|\\n|.)*?))?\\{%[ ]*endif[ ]*%\\}";
+    protected static final String PATTERN_ELSEIF = "\\{%[ ]*else if[ ]+metadata\\.(.*?)[ ]*?%\\}([^\\{]*)";
 
     public AdvancedHtmlTemplate(String md2HtmlContent, ITOMLFile metadataGlobal, List<Map<String,Object>> tomlMetadata, List<Path> templates, String content) {
         super(md2HtmlContent, metadataGlobal, tomlMetadata, templates, content);

@@ -7,7 +7,12 @@ import upariscommonmarkjava.buildsite.directorymd.DirectoryMd;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 class DirectoryHtmlTest {
@@ -21,10 +26,11 @@ class DirectoryHtmlTest {
             assertNotNull(correct_html);
             assertTrue(SimilaireDirectoryTest.isSimilare(correct_html,correct_site));
             assertDoesNotThrow(() ->  correct_html.save(Paths.get(out),true));
+            Files.write(Paths.get(in+"/content/index.md"), "Test".getBytes(), StandardOpenOption.APPEND);
             assertDoesNotThrow(() ->  correct_html.save(Paths.get(out),false));
             assertTrue(SimilaireDirectoryTest.isSimilare(correct_html,correct_site));
         }
-        catch(SiteFormatException e)
+        catch(SiteFormatException | IOException e)
         {
             fail("Cannot open DirectoryMd");
         }

@@ -156,8 +156,6 @@ public class ConverterMd2Html implements IConverterMd2Html {
             return wrapHtmlBody(htmlContent);
         }
 
-        refreshHierarchie(cmFile,template);
-
         String file = "";
         try{
             file = Files.readString(template.get());

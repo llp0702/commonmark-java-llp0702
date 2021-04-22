@@ -9,10 +9,9 @@ public class MysteryTemplateTest extends HtmlTemplateTest{
 
     @Test
     void mysteryTemplateTest(){
-        assertEquals("_list_files_1",getResult("testListFiles"));
+        assertEquals("metadata._list_files_1",getResult("testListFiles"));
         final String[] result = getResult("testListFilesFor").split("//");
 
-        System.out.println(result);
         assertTrue(result[0].contains("test2::")
                 && result[0].contains("fil1::")
                 && result[0].contains("file3::")

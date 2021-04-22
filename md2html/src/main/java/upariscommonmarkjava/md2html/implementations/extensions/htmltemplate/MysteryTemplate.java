@@ -46,7 +46,7 @@ public class MysteryTemplate extends AdvancedHtmlTemplate{
         final Map<String,Object> meta = new HashMap<>();
         meta.put(name_list_file, files);
         tomlMetadata.add(meta);
-        return name_list_file;
+        return "metadata." + name_list_file;
     }
 
     /** Renvoie les noms des fichiers contenus dans le répertoire passé en argument

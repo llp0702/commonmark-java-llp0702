@@ -104,6 +104,20 @@ public class DirectoryHtml implements IDirectoryHtml {
         return content.hashCode();
     }
 
+    protected final boolean newFileToHier(){
+        return directory.size() != hier.nombrePath();
+    }
+
+    protected final void updateNewFilesToHier(){
+        if(!newFileToHier()){
+            return;
+        }
+        for(final Path p : directory){
+            if(!hier.existPath(p.toString())){
+                hier.addNewPath(p.toString());
+            }
+        }
+    }
     /** Récupère la hierarchie si existante sinon l'initialise
      * @param targetBasePath répertoire ou se trouve la hierarchie
      */
@@ -122,6 +136,7 @@ public class DirectoryHtml implements IDirectoryHtml {
                 final FileInputStream fichier = new FileInputStream(hierOpt.get());
                 final ObjectInputStream ois = new ObjectInputStream(fichier);
                 hier = (Hierarchie) ois.readObject();
+                updateNewFilesToHier();
             }else{
                 hier = new Hierarchie(directory);
                 hier.addFromCollection(tomlOptions.getStringPath(), inputFilesMdPaths);
@@ -178,8 +193,9 @@ public class DirectoryHtml implements IDirectoryHtml {
             else if (inputFilesMdPaths.contains(path)) {
                 convertMd2HtmlAndCopyHrefs(targetBasePath, path);
             }else if(asciiFilesPaths.contains(path)) {
-                convertAscii2HtmlAndCopyHrefs(targetBasePath);
+                convertAscii2HtmlAndCopyHrefs(targetBasePath,path);
             }
+            refreshHash(path);
         } catch (IOException ignore) { }
     }
 
@@ -187,33 +203,31 @@ public class DirectoryHtml implements IDirectoryHtml {
     protected void update(@NonNull final Path targetBasePath) {
         if(hashCode() == hier.hashCode())
             return;
-
         for(final Path path :  directory){
             if(hier.getHashCourant(path.toString()) != getHash(path)){
+                if(inputFilesMdPaths.contains(path) && convertMd2HtmlGethierarchy(path).isEmpty()){
+                    logger.warning("Attention hierarchie incomplète");
+                }
                 compileFile(path,targetBasePath);
                 final List<String> list =  hier.getDepCourant(path.toString());
-
                 for(int i = 0; i < list.size(); i++){
                     final String dependance = list.get(i);
                     final Path dep = Path.of(dependance);
                     compileFile(dep,targetBasePath);
-                    hier.setHashCourant(dependance,getHash(dep));
                 }
-                hier.setHashCourant(path.toString(),getHash(path));
             }
         }
-        saveGlobalHierarchie(targetBasePath);
     }
 
     @Override
     /** sauvegarde le projet en prenant en compte rebuildAll*/
     public void save(@NonNull final Path targetBasePath,boolean rebuildAll) throws IOException  {
         setHier(targetBasePath);
-
         if(rebuildAll)
             save(targetBasePath);
         else
             update(targetBasePath);
+        saveGlobalHierarchie(targetBasePath);
     }
 
     /** créé un directory et ses parents en cas d'absence */
@@ -226,7 +240,6 @@ public class DirectoryHtml implements IDirectoryHtml {
 
     /** recompile tous les fichiers du site et les sauvegardes */
     protected void save(@NonNull final Path targetBasePath) throws IOException {
-        convertAscii2HtmlAndCopyHrefs(targetBasePath);
 
         createFolder(targetBasePath);
 
@@ -236,6 +249,9 @@ public class DirectoryHtml implements IDirectoryHtml {
         for(final Path inputMdFile: inputFilesMdPaths){
             //Convert Md to Html then Copy hrefs
             convertMd2HtmlAndCopyHrefs(targetBasePath, inputMdFile);
+        }
+        for(Path inputAsciiFile: asciiFilesPaths) {
+            convertAscii2HtmlAndCopyHrefs(targetBasePath,inputAsciiFile);
         }
         applyToValid(optTheme, theme -> {
             try {
@@ -247,8 +263,6 @@ public class DirectoryHtml implements IDirectoryHtml {
                 e.printStackTrace();
             }
         });
-
-        saveGlobalHierarchie(targetBasePath);
     }
 
     /** applique une fonction si le theme est présent et valide */
@@ -264,6 +278,7 @@ public class DirectoryHtml implements IDirectoryHtml {
             final Path outputPath = callMd2Html(targetBasePath, inputMdFile);
             //Save hrefs if not present
             copyHrefsIfAbsent(targetBasePath, outputPath);
+            refreshHash(inputMdFile);
     }
 
     /** appel la traduction grace à MD2HTML */
@@ -279,11 +294,10 @@ public class DirectoryHtml implements IDirectoryHtml {
     }
 
     /** sauvegarde les fichiers ascii en html et copier leurs liens */
-    private void convertAscii2HtmlAndCopyHrefs(@NonNull Path targetBasePath) throws IOException {
-        for(Path inputAsciiFile: asciiFilesPaths) {
-            final Path outputPath = callAscii2Html(targetBasePath, inputAsciiFile);
-            copyHrefsIfAbsent(targetBasePath, outputPath);
-        }
+    private void convertAscii2HtmlAndCopyHrefs(@NonNull Path targetBasePath,@NonNull Path inputAsciiFile) throws IOException {
+        final Path outputPath = callAscii2Html(targetBasePath, inputAsciiFile);
+        copyHrefsIfAbsent(targetBasePath, outputPath);
+        refreshHash(inputAsciiFile);
     }
 
     /** appel la traduction grace à Ascii2ToHtml */
@@ -336,7 +350,6 @@ public class DirectoryHtml implements IDirectoryHtml {
             }else if(!Files.exists(output)){
                 Files.copy(staticPath, output);
             }
-            //set the new static file hash in hierarchie
             refreshHash(staticPath);
     }
 
