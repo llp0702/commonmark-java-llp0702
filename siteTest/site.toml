@@ -1,0 +1,21 @@
+
+array = []
+test = true
+test1 = true
+test2 = false
+
+[servers]
+
+# Indentation (tabs and/or spaces) is allowed but not required
+[servers.alpha]
+ip = "10.0.0.1"
+dc = "eqdc10"
+
+[servers.beta]
+ip = "10.0.0.2"
+dc = "eqdc10"
+
+[general]
+theme = "theme1"
+title = "A Minimal Site"
+author = "The SSG Team"
